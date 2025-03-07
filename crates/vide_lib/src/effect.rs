@@ -4,28 +4,28 @@ use crate::render::{PushFunction, RenderFunction, Renderer};
 
 #[macro_export]
 macro_rules! register_effect {
-    ($name:ident, $dataname:ident) => {
-        $crate::paste::paste! {
-            #[allow(non_upper_case_globals)]
-            static mut [<$name _ID>]: usize = usize::MAX;
-            impl $crate::effect::RegisteredEffectData for $dataname {
-                unsafe fn is_registered() -> bool {
-                    [<$name _ID>] != usize::MAX
-                }
+  ($name:ident, $dataname:ident) => {
+    $crate::paste::paste! {
+      #[allow(non_upper_case_globals)]
+      static mut [<$name _ID>]: usize = usize::MAX;
+      impl $crate::effect::RegisteredEffectData for $dataname {
+        unsafe fn is_registered() -> bool {
+          [<$name _ID>] != usize::MAX
+        }
 
-                /// # Warning
-                ///
-                /// Never use this function directly as the event may not function correctly afterwards
-                unsafe fn get_id() -> usize {
-                    if [<$name _ID>] == usize::MAX {
-                        [<$name _ID>] = $crate::effect::effect_counter();
-                    }
-                    [<$name  _ID>]
-                }
+        /// # Warning
+        ///
+        /// Never use this function directly as the event may not function correctly afterwards
+        unsafe fn get_id() -> usize {
+          if [<$name _ID>] == usize::MAX {
+            [<$name _ID>] = $crate::effect::effect_counter();
+          }
+          [<$name  _ID>]
+        }
 
-                fn _new(renderer: &mut $crate::render::Renderer) -> Box<dyn std::any::Any> {
-                    Box::new(<$name as $crate::effect::Effect>::new(renderer))
-                }
+        fn _new(renderer: &mut $crate::render::Renderer) -> Box<dyn std::any::Any> {
+          Box::new(<$name as $crate::effect::Effect>::new(renderer))
+        }
 
                 fn _push(backend: &mut Box<dyn std::any::Any>, params: &Box<dyn std::any::Any>, frame: u64) {
                     <$name as $crate::effect::EffectBackend>::push(backend.as_mut().downcast_mut().unwrap(), params.as_ref().downcast_ref::<<$name as $crate::effect::EffectBackend>::Instance>().unwrap(), frame)
