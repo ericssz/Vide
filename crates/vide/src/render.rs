@@ -164,6 +164,7 @@ impl Renderer {
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
       });
       let out_texture_view = out_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
@@ -465,8 +466,8 @@ impl Renderer {
         buffer: &self.out_buffer,
         layout: wgpu::ImageDataLayout {
           offset: 0,
-          bytes_per_row: std::num::NonZeroU32::new(self.padded_bytes_per_row),
-          rows_per_image: std::num::NonZeroU32::new(self.settings.resolution.1),
+          bytes_per_row: Some(self.padded_bytes_per_row),
+          rows_per_image: Some(self.settings.resolution.1),
         },
       },
       wgpu::Extent3d {

@@ -13,7 +13,7 @@ use ac_ffmpeg::{
   },
   time::{TimeBase, Timestamp},
 };
-use vide_lib::io::{Export, Import};
+use vide::io::{Export, Import};
 
 pub struct FFmpegImporter {}
 
@@ -89,7 +89,7 @@ impl FFmpegExporter {
 }
 
 impl Export for FFmpegExporter {
-  fn begin(&mut self, settings: vide_lib::api::video::VideoSettings) {
+  fn begin(&mut self, settings: vide::api::video::VideoSettings) {
     let time_base = TimeBase::new(1, 1_000_000);
     let pixel_format = video::frame::get_pixel_format("rgb24");
 

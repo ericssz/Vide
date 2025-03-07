@@ -1,0 +1,8 @@
+[package]
+name = "vide-export"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vide = { workspace = true, default-features = false }
+ac-ffmpeg = "0.18.2"

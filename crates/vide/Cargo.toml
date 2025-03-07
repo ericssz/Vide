@@ -1,11 +1,11 @@
 [package]
-name = "vide_lib"
+name = "vide"
 version = "0.1.0"
 edition = "2021"
 
 
 [features]
-default = []
+default = ["preview"]
 preview = ["winit"]
 
 
