@@ -46,7 +46,7 @@ fn main() {
   let mut video = Video::new(VideoSettings {
     duration,
     resolution: (1920, 1080),
-    background_color: "#000505".into(),
+    background_color: rgb8!(0x00, 0x05, 0x05),
     ..Default::default()
   });
 
@@ -91,7 +91,6 @@ fn main() {
       let (_, value) = spectrum.freq_val_closest(bar as f32 * freq_step + MIN_FREQ);
 
       let prev = previous_value[bar];
-      // println!("{prev} {}", value.val() * 5000.0);
       let value = (prev * 0.84).max(value.val() * 5000.0);
       previous_value[bar] = value;
 
@@ -112,7 +111,7 @@ fn main() {
         0.0
       )),
       size: animation.build(),
-      color: unanimated!("#5ff2f0"),
+      color: unanimated!(rgb8!(0x5f, 0xf2, 0xf0)),
     });
   }
 
@@ -120,10 +119,10 @@ fn main() {
     position: unanimated!((0.0, 0.0)),
     size: unanimated!((1920.0, 1080.0)),
     color: Animation::new(60.0)
-      .keyframe(Abs(0.0), ease::LINEAR, "#00000000")
-      .keyframe(Abs(0.6), ease::LINEAR, "#00000066")
+      .keyframe(Abs(0.0), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x00))
+      .keyframe(Abs(0.6), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x66))
       .hold(5.0)
-      .keyframe(Rel(0.6), ease::LINEAR, "#00000000")
+      .keyframe(Rel(0.6), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x00))
       .build(),
   });
 
@@ -139,7 +138,7 @@ fn main() {
       .hold(3.0)
       .keyframe(Rel(0.6), ease::IN_QUARTIC, (0.0, 164.0))
       .build(),
-    color: unanimated!("#042F2E"),
+    color: unanimated!(rgb8!(0x04, 0x2f, 0x2e)),
   });
 
   video.render(vide::quick_export::to("output.mp4"));

@@ -104,53 +104,6 @@ impl From<Color> for [f64; 4] {
   }
 }
 
-impl From<&str> for Color {
-  fn from(string: &str) -> Self {
-    match string.chars().collect::<Vec<char>>().as_slice() {
-      ['#', r, g, b] => Self::new(
-        (r.to_digit(16).unwrap() + (r.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (g.to_digit(16).unwrap() + (g.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (b.to_digit(16).unwrap() + (b.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        1.0,
-      ),
-      ['#', r, g, b, a] => Self::new(
-        (r.to_digit(16).unwrap() + (r.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (g.to_digit(16).unwrap() + (g.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (b.to_digit(16).unwrap() + (b.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (a.to_digit(16).unwrap() + (a.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-      ),
-      ['#', r2, r1, g2, g1, b2, b1] => Self::new(
-        (r1.to_digit(16).unwrap() + (r2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (g1.to_digit(16).unwrap() + (g2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (b1.to_digit(16).unwrap() + (b2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        1.0,
-      ),
-      ['#', r2, r1, g2, g1, b2, b1, a2, a1] => Self::new(
-        (r1.to_digit(16).unwrap() + (r2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (g1.to_digit(16).unwrap() + (g2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (b1.to_digit(16).unwrap() + (b2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-        (a1.to_digit(16).unwrap() + (a2.to_digit(16).unwrap() << 4)) as f64 / 255.0,
-      ),
-      chars => match chars
-        .into_iter()
-        .map(|c| *c as u8)
-        .collect::<Vec<u8>>()
-        .as_slice()
-      {
-        b"black" => Self::BLACK,
-        b"white" => Self::WHITE,
-        b"transparent" => Self::TRANSPARENT,
-        b"transparent white" | b"transparent_white" => Self::TRANSPARENT_WHITE,
-        b"transparent black" | b"transparent_black" => Self::TRANSPARENT_BLACK,
-        b"red" => Self::RED,
-        b"green" => Self::GREEN,
-        b"blue" => Self::BLUE,
-        _ => panic!("Unrecognized color: {}", string),
-      },
-    }
-  }
-}
-
 /// Use this macro if you have a hex color you would like to use. Use
 /// [`rgba8!(r, g, b, a)`] instead if you color isn't fully opaque.
 ///

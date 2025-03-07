@@ -17,10 +17,10 @@ fn main() {
         position: unanimated!((-300.0, 0.0)),
         size: unanimated!((200.0, 150.0)),
         color: Animation::new(60.0)
-            .keyframe(Abs(0.0), ease::LINEAR,         "#da003700")
-            .keyframe(Rel(0.3), ease::OUT_QUADRATIC,  "#da0037")
+            .keyframe(Abs(0.0), ease::LINEAR,         rgba8!(0xda, 0x00, 0x37, 0x00))
+            .keyframe(Rel(0.3), ease::OUT_QUADRATIC,  rgb8!(0xda, 0x00, 0x37))
             .hold(0.3)
-            .keyframe(Rel(0.3), ease::IN_QUADRATIC,   "#00da37")
+            .keyframe(Rel(0.3), ease::IN_QUADRATIC,   rgb8!(0x00, 0xda, 0x37))
             .build(),
     });
 
@@ -28,10 +28,10 @@ fn main() {
         position: unanimated!((0.0, 0.0)),
         size: unanimated!((200.0, 150.0)),
         color: Animation::new(60.0)
-            .keyframe(Abs(0.0), ease::LINEAR,         "#da003700")
-            .keyframe(Rel(0.3), ease::OUT_QUADRATIC,  "#da0037")
+            .keyframe(Abs(0.0), ease::LINEAR,         rgba8!(0xda, 0x00, 0x37, 0x00))
+            .keyframe(Rel(0.3), ease::OUT_QUADRATIC,  rgb8!(0xda, 0x00, 0x37))
             .hold(0.3)
-            .keyframe(Rel(0.3), ease::IN_QUADRATIC,   "#00da37")
+            .keyframe(Rel(0.3), ease::IN_QUADRATIC,   rgb8!(0x00, 0xda, 0x37))
             .build(),
     });
 
@@ -39,10 +39,10 @@ fn main() {
         position: unanimated!((300.0, 0.0)),
         size: unanimated!((200.0, 150.0)),
         color: Animation::new(60.0)
-            .keyframe(Abs(0.0), ease::LINEAR,         "#da003700")
-            .keyframe(Rel(0.3), ease::OUT_QUADRATIC,  "#da0037")
+            .keyframe(Abs(0.0), ease::LINEAR,         rgba8!(0xda, 0x00, 0x37, 0x00))
+            .keyframe(Rel(0.3), ease::OUT_QUADRATIC,  rgb8!(0xda, 0x00, 0x37))
             .hold(0.3)
-            .keyframe(Rel(0.3), ease::IN_QUADRATIC,   "#00da37")
+            .keyframe(Rel(0.3), ease::IN_QUADRATIC,   rgb8!(0x00, 0xda, 0x37))
             .build(),
     });
 
@@ -52,7 +52,7 @@ fn main() {
             .keyframe(Abs(0.0), ease::LINEAR,          (0.0, 1080.0))
             .keyframe(Rel(0.9), ease::OUT_EXPONENTIAL, (1920.0, 1080.0))
             .build(),
-        color: unanimated!("#0037da"),
+        color: unanimated!(rgb8!(0x00, 0x37, 0xda)),
     });
 
     video.render(vide::quick_export::to("output.mp4"));

@@ -58,7 +58,7 @@ impl<'a> Clip<'a> {
       start: Some(0),
       end: Some(duration.into_frame(fps)),
       fps,
-      _phantom: PhantomData::default(),
+      _phantom: PhantomData,
     }
   }
 
@@ -116,7 +116,7 @@ impl<'a> Clip<'a> {
         Bound::Unbounded => None,
       },
       fps: self.fps,
-      _phantom: PhantomData::default(),
+      _phantom: PhantomData,
     });
 
     self.children.last_mut().unwrap()
