@@ -4,7 +4,6 @@ use std::{
   time::Duration,
 };
 
-use log::info;
 use wgpu::util::DeviceExt;
 
 use crate::{
@@ -70,10 +69,6 @@ pub enum RenderEvent<'a> {
     clip: &'a mut dyn Clip,
     frame: u64,
   },
-}
-
-pub trait Render {
-  fn render(&self, renderer: &mut Renderer);
 }
 
 pub struct Renderer {
