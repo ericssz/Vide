@@ -106,7 +106,7 @@ impl Video {
         event: winit::event::WindowEvent::RedrawRequested,
         ..
       } => {
-        let mut events = Vec::new();
+        let mut events = vec![];
         for clip in clips.iter_mut() {
           events.push(RenderEvent::Clip {
             clip: clip.as_mut(),
@@ -135,7 +135,7 @@ impl Video {
     for frame in 0..self.settings.duration.into_frame(self.settings.fps) {
       info!("Encoding frame...");
 
-      let mut events = Vec::new();
+      let mut events = vec![];
       for clip in self.clips.iter_mut() {
         events.push(RenderEvent::RenderClip {
           clip: clip.as_mut(),

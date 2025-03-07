@@ -233,7 +233,7 @@ impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedPropertyBuilder<T> {
   pub fn new(fps: f64) -> Self {
     Self {
       initial: None,
-      keyframes: Vec::new(),
+      keyframes: vec![],
       fps,
     }
   }

@@ -214,12 +214,12 @@ impl Renderer {
     };
 
     #[rustfmt::skip]
-        let screen_matrix = cgmath::Matrix4::new(
-            2.0 / settings.resolution.0 as f32, 0.0,                                0.0, 0.0,
-            0.0,                                2.0 / settings.resolution.1 as f32, 0.0, 0.0,
-            0.0,                                0.0,                                1.0, 0.0,
-            0.0,                                0.0,                                0.0, 1.0,
-        );
+    let screen_matrix = cgmath::Matrix4::new(
+      2.0 / settings.resolution.0 as f32, 0.0,                                0.0, 0.0,
+      0.0,                                2.0 / settings.resolution.1 as f32, 0.0, 0.0,
+      0.0,                                0.0,                                1.0, 0.0,
+      0.0,                                0.0,                                0.0, 1.0,
+    );
 
     let transform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Transform Buffer"),
@@ -290,9 +290,9 @@ impl Renderer {
       #[cfg(feature = "preview")]
       surface,
 
-      _effect_push_functions: Vec::new(),
-      effect_render_functions: Vec::new(),
-      effects: Vec::new(),
+      _effect_push_functions: vec![],
+      effect_render_functions: vec![],
+      effects: vec![],
 
       transform_buffer,
       transform_bind_group_layout,
@@ -380,8 +380,7 @@ impl Renderer {
           }),
           stencil_ops: None,
         }),
-        timestamp_writes: None,
-        occlusion_query_set: None,
+        ..Default::default()
       });
 
       pass.set_bind_group(0, &self.transform_bind_group, &[]);
