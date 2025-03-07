@@ -4,7 +4,6 @@
 
 pub mod api;
 pub mod clip;
-pub mod effect;
 pub mod io;
 pub mod render;
 

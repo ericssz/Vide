@@ -1,14 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
-use log::info;
-
-use crate::{
-  api::color::Color,
-  clip::Clip,
-  io::Export,
-  render::{Renderer, Time},
-  rgb8,
-};
+use crate::{api::color::Color, clip::Clip, io::Export, render::Renderer, rgb8};
 
 #[derive(Debug, Clone, Copy)]
 pub struct VideoSettings {
@@ -29,17 +21,17 @@ impl Default for VideoSettings {
   }
 }
 
-pub struct Video<'a> {
+pub struct Video {
   #[cfg(feature = "preview")]
   event_loop: winit::event_loop::EventLoop<()>,
   #[cfg(feature = "preview")]
   window: Arc<winit::window::Window>,
-  renderer: Renderer,
-  root: Clip<'a>,
+  pub renderer: Renderer,
+  clips: Vec<Box<dyn Clip>>,
   pub settings: VideoSettings,
 }
 
-impl<'a> Video<'a> {
+impl Video {
   pub fn new(settings: VideoSettings) -> Self {
     #[cfg(feature = "preview")]
     let (event_loop, window, renderer) = {
@@ -68,28 +60,24 @@ impl<'a> Video<'a> {
       renderer,
       #[cfg(not(feature = "preview"))]
       renderer: Renderer::new(settings),
-      root: Clip::empty(settings.duration, settings.fps),
+      clips: vec![],
       settings,
     }
   }
 
-  pub fn root(&mut self) -> &mut Clip<'a> {
-    &mut self.root
-  }
-
   #[allow(unused_variables)]
-  pub fn render(mut self, exporter: impl Export)
+  pub fn render(self, exporter: impl Export)
   where
     Self: 'static,
   {
-    self
-      .renderer
-      .register_effects(self.root.get_registration_packets());
-
     #[cfg(feature = "preview")]
     self.preview();
     #[cfg(not(feature = "preview"))]
     self.export(exporter);
+  }
+
+  pub fn push_clip(&mut self, clip: impl Clip + 'static) {
+    self.clips.push(Box::new(clip));
   }
 
   #[cfg(feature = "preview")]
@@ -97,12 +85,14 @@ impl<'a> Video<'a> {
   where
     Self: 'static,
   {
-    let Self {
+    use crate::render::RenderEvent;
+
+    let Video {
       settings,
       window,
       event_loop,
       mut renderer,
-      mut root,
+      mut clips,
       ..
     } = self;
 
@@ -116,7 +106,14 @@ impl<'a> Video<'a> {
         event: winit::event::WindowEvent::RedrawRequested,
         ..
       } => {
-        render_frame(frame, &mut renderer, &mut root);
+        let mut events = Vec::new();
+        for clip in clips.iter_mut() {
+          events.push(RenderEvent::Clip {
+            clip: clip.as_mut(),
+            frame,
+          });
+        }
+        renderer.render(events);
         frame = (frame + 1) % (settings.duration.as_secs_f64() * settings.fps) as u64;
       }
       winit::event::Event::AboutToWait => {
@@ -137,14 +134,20 @@ impl<'a> Video<'a> {
 
     for frame in 0..self.settings.duration.into_frame(self.settings.fps) {
       info!("Encoding frame...");
-      exporter.push_frame(
-        true,
-        &render_frame(frame, &mut self.renderer, &mut self.root).unwrap()[..],
-      );
+
+      let mut events = Vec::new();
+      for clip in self.clips.iter_mut() {
+        events.push(RenderEvent::RenderClip {
+          clip: clip.as_mut(),
+          frame,
+        });
+      }
+
+      let frame_data = self.renderer.render(events).unwrap();
+      exporter.push_frame(true, &frame_data);
     }
 
     info!("Finalizing encoding...");
-
     exporter.end();
 
     info!(
@@ -152,27 +155,4 @@ impl<'a> Video<'a> {
       (std::time::Instant::now() - start_time).as_secs_f32()
     );
   }
-}
-
-fn render_frame(frame: u64, renderer: &mut Renderer, clip: &mut Clip<'_>) -> Option<Vec<u8>> {
-  let time = frame as f64 / renderer.fps();
-  let progress = time / renderer.duration().as_secs_f64();
-
-  info!("Rendering frame {}...", frame);
-
-  renderer.render(clip.render(
-    Time {
-      video_frame: frame,
-      sequence_frame: frame,
-      clip_frame: frame,
-      video_time: time,
-      sequence_time: time,
-      clip_time: time,
-      video_progress: progress,
-      sequence_progress: progress,
-      clip_progress: progress,
-    },
-    renderer.last_frame(),
-    renderer.screen_matrix,
-  ))
 }

@@ -6,12 +6,8 @@ use wgpu::util::DeviceExt;
 use super::shader::Shader;
 use crate::render::Renderer;
 
-pub trait VertexAttributeDescriptor {
-  fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
-}
-
-#[repr(C)]
 #[derive(Default, Debug, Clone, Copy, Pod, Zeroable)]
+#[repr(C)]
 pub struct Vertex {
   pub position: [f32; 2],
   pub uv: [f32; 2],

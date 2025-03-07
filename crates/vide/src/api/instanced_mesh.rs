@@ -123,9 +123,9 @@ impl InstancedMesh {
     }
   }
 
-  pub fn render<'a>(
-    &'a mut self,
-    mut render_pass: MutexGuard<wgpu::RenderPass<'a>>,
+  pub fn render(
+    &mut self,
+    mut render_pass: MutexGuard<wgpu::RenderPass<'_>>,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
     instances: Vec<Instance>,
