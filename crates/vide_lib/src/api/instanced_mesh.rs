@@ -1,15 +1,16 @@
-use std::{marker::PhantomData, sync::MutexGuard};
+use std::sync::MutexGuard;
 
 use wgpu::util::DeviceExt;
 
 use super::{
+  instance::Instance,
   mesh::{Vertex, VertexAttributeDescriptor},
   shader::Shader,
 };
 use crate::render::Renderer;
 
 #[derive(Debug)]
-pub struct InstancedMesh<T: VertexAttributeDescriptor> {
+pub struct InstancedMesh {
   vertices: Vec<Vertex>,
   len_vertices: u32,
   indices: Option<Vec<u16>>,
@@ -21,11 +22,9 @@ pub struct InstancedMesh<T: VertexAttributeDescriptor> {
   instance_buffer: wgpu::Buffer,
   instance_buffer_len: usize,
   pipeline: wgpu::RenderPipeline,
-
-  _phantom: PhantomData<T>,
 }
 
-impl<T: VertexAttributeDescriptor + bytemuck::Pod + bytemuck::Zeroable> InstancedMesh<T> {
+impl InstancedMesh {
   pub fn new(
     renderer: &mut Renderer,
     vertices: Vec<Vertex>,
@@ -59,7 +58,7 @@ impl<T: VertexAttributeDescriptor + bytemuck::Pod + bytemuck::Zeroable> Instance
 
     let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
       label: Some("Mesh Instance Buffer"),
-      size: std::mem::size_of::<T>() as wgpu::BufferAddress,
+      size: std::mem::size_of::<Instance>() as wgpu::BufferAddress,
       usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
       mapped_at_creation: false,
     });
@@ -76,7 +75,7 @@ impl<T: VertexAttributeDescriptor + bytemuck::Pod + bytemuck::Zeroable> Instance
       vertex: wgpu::VertexState {
         module: &shader.module,
         entry_point: "vs_main",
-        buffers: &[Vertex::desc(), T::desc()],
+        buffers: &[Vertex::desc(), Instance::desc()],
       },
       fragment: Some(wgpu::FragmentState {
         module: &shader.module,
@@ -122,7 +121,6 @@ impl<T: VertexAttributeDescriptor + bytemuck::Pod + bytemuck::Zeroable> Instance
       instance_buffer,
       instance_buffer_len: 0,
       pipeline,
-      _phantom: Default::default(),
     }
   }
 
@@ -131,7 +129,7 @@ impl<T: VertexAttributeDescriptor + bytemuck::Pod + bytemuck::Zeroable> Instance
     mut render_pass: MutexGuard<wgpu::RenderPass<'a>>,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
-    instances: Vec<T>,
+    instances: Vec<Instance>,
   ) {
     if self.instance_buffer_len != instances.len() {
       self.instance_buffer_len = instances.len();

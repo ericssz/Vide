@@ -106,9 +106,10 @@ impl<'a> Video<'a> {
 
     let mut frame = 0u64;
     event_loop.run(move |event, _, control_flow| match event {
-      winit::event::Event::WindowEvent { window_id, .. } if window_id == window.id() => {
-        *control_flow = winit::event_loop::ControlFlow::Exit
-      }
+      winit::event::Event::WindowEvent {
+        event: winit::event::WindowEvent::CloseRequested,
+        window_id,
+      } if window_id == window.id() => *control_flow = winit::event_loop::ControlFlow::Exit,
       winit::event::Event::RedrawRequested(window_id) if window_id == window.id() => {
         render_frame(frame, &mut renderer, &mut root);
         frame = (frame + 1) % (settings.duration.as_secs_f64() * settings.fps) as u64;
