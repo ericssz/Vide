@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["ffmpeg"]
-ffmpeg = ["vide_ffmpeg"]
+default = ["ffmpeg", "preview"]
+ffmpeg = ["vide_export"]
 preview = ["vide_lib/preview"]
 
 
 [dependencies]
-vide_ffmpeg = { path = "../crates/vide_ffmpeg", optional = true }
+vide_export = { path = "../crates/vide_export", optional = true }
 vide_lib = { path = "../crates/vide_lib" }
