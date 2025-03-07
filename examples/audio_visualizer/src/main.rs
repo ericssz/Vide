@@ -141,5 +141,5 @@ fn main() {
     color: unanimated!(rgb8!(0x04, 0x2f, 0x2e)),
   });
 
-  video.render(vide::quick_export::to("output.mp4"));
+  video.render(vide_export::quick_export::to("output.mp4"));
 }

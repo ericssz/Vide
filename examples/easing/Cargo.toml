@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-env_logger = "0.9.0"
+env_logger.workspace = true
 vide.workspace = true
 vide-export.workspace = true
