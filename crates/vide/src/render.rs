@@ -4,10 +4,12 @@ use std::{
   time::Duration,
 };
 
-use log::info;
 use wgpu::util::DeviceExt;
 
-use crate::{api::video::VideoSettings, clip::IntoFrame, effect::EffectRegistrationPacket};
+use crate::{
+  api::video::VideoSettings,
+  clip::{Clip, IntoFrame},
+};
 
 pub(crate) type PushFunction = fn(&mut Box<dyn Any>, &Box<dyn Any>, u64);
 pub(crate) type RenderFunction =
@@ -63,16 +65,10 @@ pub enum RenderEvent<'a> {
     data: &'a [u8],
   },
   SetTransform(cgmath::Matrix4<f32>),
-  Effect {
-    // Render effect
-    id: usize,
-    params: &'a Box<dyn Any>,
+  Clip {
+    clip: &'a mut dyn Clip,
     frame: u64,
   },
-}
-
-pub trait Render {
-  fn render(&self, renderer: &mut Renderer);
 }
 
 pub struct Renderer {
@@ -101,7 +97,7 @@ pub struct Renderer {
   surface: wgpu::Surface<'static>,
 
   /// Holds function pointers to all `push()` functions of registered effects
-  effect_push_functions: Vec<Option<PushFunction>>,
+  _effect_push_functions: Vec<Option<PushFunction>>,
   /// Holds function pointers to all `render()` functions of registered effects
   effect_render_functions: Vec<Option<RenderFunction>>,
   /// Holds `self` for the `render()` functions described in
@@ -294,7 +290,7 @@ impl Renderer {
       #[cfg(feature = "preview")]
       surface,
 
-      effect_push_functions: Vec::new(),
+      _effect_push_functions: Vec::new(),
       effect_render_functions: Vec::new(),
       effects: Vec::new(),
 
@@ -322,6 +318,11 @@ impl Renderer {
   }
 
   #[inline]
+  pub fn wgpu_queue(&self) -> &wgpu::Queue {
+    &self.queue
+  }
+
+  #[inline]
   pub fn wgpu_device(&self) -> &wgpu::Device {
     &self.device
   }
@@ -334,35 +335,6 @@ impl Renderer {
   #[inline]
   pub fn wgpu_transform_bind_group_layout(&self) -> &wgpu::BindGroupLayout {
     &self.transform_bind_group_layout
-  }
-
-  pub(crate) fn register_effects(&mut self, packets: Vec<EffectRegistrationPacket>) {
-    info!(
-      "Renderer received {} effect registration packets",
-      packets.len()
-    );
-
-    for packet in packets {
-      info!("Registering effect on id {}", packet.id);
-
-      if self.effect_render_functions.len() < packet.id + 1 {
-        self
-          .effect_push_functions
-          .extend((self.effect_push_functions.len()..=packet.id).map(|_| None));
-        self
-          .effect_render_functions
-          .extend((self.effect_render_functions.len()..=packet.id).map(|_| None));
-        self
-          .effects
-          .extend((self.effects.len()..=packet.id).map(|_| None));
-      }
-
-      if self.effect_render_functions[packet.id].is_none() {
-        self.effect_push_functions[packet.id] = Some(packet.push_function);
-        self.effect_render_functions[packet.id] = Some(packet.render_function);
-        self.effects[packet.id] = Some((packet.init_function)(self));
-      }
-    }
   }
 
   pub(crate) fn render(&mut self, events: Vec<RenderEvent>) -> Option<Vec<u8>> {
@@ -431,12 +403,8 @@ impl Renderer {
               bytemuck::cast_slice(&[Into::<[[f32; 4]; 4]>::into(transform)]),
             );
           }
-          RenderEvent::Effect { id, params, frame } => {
-            self.effect_push_functions[id].unwrap()(
-              self.effects.get_mut(id).unwrap().as_mut().unwrap(),
-              params,
-              frame,
-            );
+          RenderEvent::Clip { clip, frame } => {
+            clip.render(self, pass_ref.lock().unwrap(), frame);
           }
         }
       }

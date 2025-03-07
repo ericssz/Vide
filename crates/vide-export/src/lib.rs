@@ -75,7 +75,7 @@ impl FFmpegExporter {
 
       container: container.to_string(),
       video_coding: video_coding.to_string(),
-      audio_coding: audio_coding,
+      audio_coding,
 
       encoder: None,
       muxer: None,

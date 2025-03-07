@@ -6,12 +6,8 @@ use wgpu::util::DeviceExt;
 use super::shader::Shader;
 use crate::render::Renderer;
 
-pub trait VertexAttributeDescriptor {
-  fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
-}
-
-#[repr(C)]
 #[derive(Default, Debug, Clone, Copy, Pod, Zeroable)]
+#[repr(C)]
 pub struct Vertex {
   pub position: [f32; 2],
   pub uv: [f32; 2],
@@ -40,11 +36,11 @@ impl Vertex {
 
 #[derive(Debug)]
 pub struct Mesh {
-  vertices: Vec<Vertex>,
+  _vertices: Vec<Vertex>,
   len_vertices: u32,
-  indices: Option<Vec<u16>>,
+  _indices: Option<Vec<u16>>,
   len_indices: u32,
-  shader: Shader,
+  _shader: Shader,
 
   vertex_buffer: wgpu::Buffer,
   index_buffer: Option<wgpu::Buffer>,
@@ -139,22 +135,18 @@ impl Mesh {
     });
 
     Self {
-      vertices,
+      _vertices: vertices,
       len_vertices,
-      indices,
+      _indices: indices,
       len_indices,
-      shader,
+      _shader: shader,
       vertex_buffer,
       index_buffer,
       pipeline,
     }
   }
 
-  pub fn render<'a>(
-    &'a self,
-    mut render_pass: MutexGuard<wgpu::RenderPass<'a>>,
-    queue: &wgpu::Queue,
-  ) {
+  pub fn render(&self, mut render_pass: MutexGuard<wgpu::RenderPass<'_>>, queue: &wgpu::Queue) {
     if let Some(index_buffer) = self.index_buffer.as_ref() {
       render_pass.set_pipeline(&self.pipeline);
       render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));

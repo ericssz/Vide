@@ -10,7 +10,7 @@ fn main() {
     ..Default::default()
   });
 
-  let easing_functions = vec![
+  let easing_functions = [
     ease::LINEAR,
     ease::IN_QUADRATIC,
     ease::IN_CUBIC,
@@ -33,7 +33,7 @@ fn main() {
   let pos_right = 820.0 - rect_size * 0.5;
   for (i, &easing) in easing_functions.iter().enumerate() {
     let y_pos = 400.0 - rect_seperation * i as f32 + rect_size * 0.5;
-    video.root().new_clip(0.0..5.0).effect(Rect {
+    video.push_clip(Rect {
       position: Animation::new(60.0)
         .keyframe(Abs(0.0), ease::LINEAR, (pos_left, y_pos))
         .keyframe(Abs(2.0), easing, (pos_right, y_pos))

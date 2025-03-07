@@ -7,11 +7,11 @@ use crate::render::Renderer;
 
 #[derive(Debug)]
 pub struct InstancedMesh {
-  vertices: Vec<Vertex>,
+  _vertices: Vec<Vertex>,
   len_vertices: u32,
-  indices: Option<Vec<u16>>,
+  _indices: Option<Vec<u16>>,
   len_indices: u32,
-  shader: Shader,
+  _shader: Shader,
 
   vertex_buffer: wgpu::Buffer,
   index_buffer: Option<wgpu::Buffer>,
@@ -110,11 +110,11 @@ impl InstancedMesh {
     });
 
     Self {
-      vertices,
+      _vertices: vertices,
       len_vertices,
-      indices,
+      _indices: indices,
       len_indices,
-      shader,
+      _shader: shader,
       vertex_buffer,
       index_buffer,
       instance_buffer,
@@ -123,9 +123,9 @@ impl InstancedMesh {
     }
   }
 
-  pub fn render<'a>(
-    &'a mut self,
-    mut render_pass: MutexGuard<wgpu::RenderPass<'a>>,
+  pub fn render(
+    &mut self,
+    mut render_pass: MutexGuard<wgpu::RenderPass<'_>>,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
     instances: Vec<Instance>,
