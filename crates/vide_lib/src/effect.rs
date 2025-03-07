@@ -1,8 +1,9 @@
 use std::{any::Any, sync::MutexGuard};
 
-use crate::render::{Renderer, PushFunction, RenderFunction};
+use crate::render::{PushFunction, RenderFunction, Renderer};
 
-#[macro_export] macro_rules! register_effect {
+#[macro_export]
+macro_rules! register_effect {
     ($name:ident, $dataname:ident) => {
         $crate::paste::paste! {
             #[allow(non_upper_case_globals)]
@@ -13,7 +14,7 @@ use crate::render::{Renderer, PushFunction, RenderFunction};
                 }
 
                 /// # Warning
-                /// 
+                ///
                 /// Never use this function directly as the event may not function correctly afterwards
                 unsafe fn get_id() -> usize {
                     if [<$name _ID>] == usize::MAX {
@@ -40,41 +41,51 @@ use crate::render::{Renderer, PushFunction, RenderFunction};
 
 static mut COUNTER: usize = 0;
 pub unsafe fn effect_counter() -> usize {
-    COUNTER += 1;
-    COUNTER - 1
+  COUNTER += 1;
+  COUNTER - 1
 }
 
 pub enum EffectParameter {
-    F64(f64),
+  F64(f64),
 }
 
 pub trait Effect {
-    fn new(renderer: &mut Renderer) -> Self;
+  fn new(renderer: &mut Renderer) -> Self;
 }
 
 pub trait EffectBackend {
-    type Instance;
-    fn push(&mut self, instance: &Self::Instance, frame: u64);
-    fn render<'a>(&'a mut self, pass: MutexGuard<'_, wgpu::RenderPass<'a>>, device: &wgpu::Device, queue: &wgpu::Queue);
+  type Instance;
+  fn push(&mut self, instance: &Self::Instance, frame: u64);
+  fn render<'a>(
+    &'a mut self,
+    pass: MutexGuard<'_, wgpu::RenderPass<'a>>,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+  );
 }
 
 pub trait RegisteredEffectData {
-    unsafe fn is_registered() -> bool;
-    unsafe fn get_id() -> usize;
-    fn _new(renderer: &mut Renderer) -> Box<dyn Any>;
-    fn _push(backend: &mut Box<dyn Any>, params: &Box<dyn Any>, frame: u64);
-    fn _render<'a>(backend: &'a mut Box<dyn Any>, pass: MutexGuard<'_, wgpu::RenderPass<'a>>, device: &wgpu::Device, queue: &wgpu::Queue);
+  unsafe fn is_registered() -> bool;
+  unsafe fn get_id() -> usize;
+  fn _new(renderer: &mut Renderer) -> Box<dyn Any>;
+  fn _push(backend: &mut Box<dyn Any>, params: &Box<dyn Any>, frame: u64);
+  fn _render<'a>(
+    backend: &'a mut Box<dyn Any>,
+    pass: MutexGuard<'_, wgpu::RenderPass<'a>>,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+  );
 }
 
 pub struct EffectData {
-    pub(crate) id: usize,
-    pub(crate) params: Box<dyn Any>,
+  pub(crate) id: usize,
+  pub(crate) params: Box<dyn Any>,
 }
 
 #[derive(Clone, Copy)]
 pub struct EffectRegistrationPacket {
-    pub id: usize,
-    pub push_function: PushFunction,
-    pub render_function: RenderFunction,
-    pub init_function: fn(&mut Renderer)->Box<dyn Any>,
+  pub id: usize,
+  pub push_function: PushFunction,
+  pub render_function: RenderFunction,
+  pub init_function: fn(&mut Renderer) -> Box<dyn Any>,
 }
