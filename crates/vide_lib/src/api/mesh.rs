@@ -1,5 +1,6 @@
 use std::sync::MutexGuard;
 
+use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
 
 use super::shader::Shader;
@@ -10,17 +11,14 @@ pub trait VertexAttributeDescriptor {
 }
 
 #[repr(C)]
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Pod, Zeroable)]
 pub struct Vertex {
   pub position: [f32; 2],
   pub uv: [f32; 2],
 }
 
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
-
-impl VertexAttributeDescriptor for Vertex {
-  fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+impl Vertex {
+  pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
     wgpu::VertexBufferLayout {
       array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
       step_mode: wgpu::VertexStepMode::Vertex,
@@ -101,17 +99,19 @@ impl Mesh {
       layout: Some(&pipeline_layout),
       vertex: wgpu::VertexState {
         module: &shader.module,
-        entry_point: "vs_main",
+        entry_point: Some("vs_main"),
         buffers: &[Vertex::desc()],
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
       },
       fragment: Some(wgpu::FragmentState {
         module: &shader.module,
-        entry_point: "fs_main",
+        entry_point: Some("fs_main"),
         targets: &[Some(wgpu::ColorTargetState {
           format: config.format,
           blend: Some(wgpu::BlendState::ALPHA_BLENDING),
           write_mask: wgpu::ColorWrites::ALL,
         })],
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
       }),
       primitive: wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,
@@ -135,6 +135,7 @@ impl Mesh {
         alpha_to_coverage_enabled: false,
       },
       multiview: None,
+      cache: None,
     });
 
     Self {

@@ -2,11 +2,7 @@ use std::sync::MutexGuard;
 
 use wgpu::util::DeviceExt;
 
-use super::{
-  instance::Instance,
-  mesh::{Vertex, VertexAttributeDescriptor},
-  shader::Shader,
-};
+use super::{instance::Instance, mesh::Vertex, shader::Shader};
 use crate::render::Renderer;
 
 #[derive(Debug)]
@@ -74,17 +70,19 @@ impl InstancedMesh {
       layout: Some(&pipeline_layout),
       vertex: wgpu::VertexState {
         module: &shader.module,
-        entry_point: "vs_main",
+        entry_point: Some("vs_main"),
         buffers: &[Vertex::desc(), Instance::desc()],
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
       },
       fragment: Some(wgpu::FragmentState {
         module: &shader.module,
-        entry_point: "fs_main",
+        entry_point: Some("fs_main"),
         targets: &[Some(wgpu::ColorTargetState {
           format: config.format,
           blend: Some(wgpu::BlendState::ALPHA_BLENDING),
           write_mask: wgpu::ColorWrites::ALL,
         })],
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
       }),
       primitive: wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,
@@ -108,6 +106,7 @@ impl InstancedMesh {
         alpha_to_coverage_enabled: false,
       },
       multiview: None,
+      cache: None,
     });
 
     Self {
