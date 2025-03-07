@@ -50,8 +50,6 @@ fn main() {
     ..Default::default()
   });
 
-  let root = video.root();
-
   log::info!("Analyzing audio file");
 
   let bar_x_size = ALL_BARS_WIDTH / BARS as f32 - BAR_SEPERATION;
@@ -105,7 +103,7 @@ fn main() {
   log::info!("Building animations");
 
   for (i, animation) in size_animations.into_iter().enumerate() {
-    root.new_clip(0.0..duration.as_secs_f64()).effect(Rect {
+    video.push_clip(Rect {
       position: unanimated!((
         (ALL_BARS_WIDTH * -0.5) + (bar_x_size + BAR_SEPERATION) * i as f32,
         0.0
@@ -115,7 +113,7 @@ fn main() {
     });
   }
 
-  root.new_clip(0.0..7.0).effect(Rect {
+  video.push_clip(Rect {
     position: unanimated!((0.0, 0.0)),
     size: unanimated!((1920.0, 1080.0)),
     color: Animation::new(60.0)
@@ -126,7 +124,7 @@ fn main() {
       .build(),
   });
 
-  root.new_clip(0.0..7.0).effect(Rect {
+  video.push_clip(Rect {
     position: Animation::new(60.0)
       .keyframe(Abs(0.0), ease::LINEAR, (0.0, -590.0))
       .keyframe(Rel(1.0), ease::IN_OUT_QUINTIC, (0.0, 0.0))
