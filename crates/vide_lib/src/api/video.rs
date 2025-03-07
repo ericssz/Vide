@@ -1,5 +1,4 @@
-use core::time::Duration;
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use log::info;
 

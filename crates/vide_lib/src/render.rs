@@ -167,7 +167,7 @@ impl Renderer {
       });
       let out_texture_view = out_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-      let pixel_size = core::mem::size_of::<[u8; 4]>() as u32;
+      let pixel_size = std::mem::size_of::<[u8; 4]>() as u32;
       let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
       let unpadded_bytes_per_row = pixel_size * settings.resolution.0;
       let padding = (align - unpadded_bytes_per_row % align) % align;
@@ -476,7 +476,7 @@ impl Renderer {
       },
     );
 
-    self.queue.submit(core::iter::once(encoder.finish()));
+    self.queue.submit(std::iter::once(encoder.finish()));
     #[cfg(feature = "preview")]
     output.present();
     #[cfg(feature = "preview")]

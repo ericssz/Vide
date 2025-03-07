@@ -1,7 +1,7 @@
-use core::time::Duration;
 use std::{
   marker::PhantomData,
   ops::{Bound, Range, RangeBounds},
+  time::Duration,
 };
 
 use crate::{

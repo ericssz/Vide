@@ -20,7 +20,7 @@ pub struct Vertex {
 impl Vertex {
   pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
     wgpu::VertexBufferLayout {
-      array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+      array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
       step_mode: wgpu::VertexStepMode::Vertex,
       attributes: &[
         wgpu::VertexAttribute {
@@ -29,7 +29,7 @@ impl Vertex {
           format: wgpu::VertexFormat::Float32x2,
         },
         wgpu::VertexAttribute {
-          offset: core::mem::size_of::<[f32; 2]>() as wgpu::BufferAddress,
+          offset: std::mem::size_of::<[f32; 2]>() as wgpu::BufferAddress,
           shader_location: 1,
           format: wgpu::VertexFormat::Float32x2,
         },
