@@ -97,7 +97,7 @@ pub struct Renderer {
   surface: wgpu::Surface<'static>,
 
   /// Holds function pointers to all `push()` functions of registered effects
-  effect_push_functions: Vec<Option<PushFunction>>,
+  _effect_push_functions: Vec<Option<PushFunction>>,
   /// Holds function pointers to all `render()` functions of registered effects
   effect_render_functions: Vec<Option<RenderFunction>>,
   /// Holds `self` for the `render()` functions described in
@@ -290,7 +290,7 @@ impl Renderer {
       #[cfg(feature = "preview")]
       surface,
 
-      effect_push_functions: Vec::new(),
+      _effect_push_functions: Vec::new(),
       effect_render_functions: Vec::new(),
       effects: Vec::new(),
 

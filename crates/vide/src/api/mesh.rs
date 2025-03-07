@@ -36,11 +36,11 @@ impl Vertex {
 
 #[derive(Debug)]
 pub struct Mesh {
-  vertices: Vec<Vertex>,
+  _vertices: Vec<Vertex>,
   len_vertices: u32,
-  indices: Option<Vec<u16>>,
+  _indices: Option<Vec<u16>>,
   len_indices: u32,
-  shader: Shader,
+  _shader: Shader,
 
   vertex_buffer: wgpu::Buffer,
   index_buffer: Option<wgpu::Buffer>,
@@ -135,11 +135,11 @@ impl Mesh {
     });
 
     Self {
-      vertices,
+      _vertices: vertices,
       len_vertices,
-      indices,
+      _indices: indices,
       len_indices,
-      shader,
+      _shader: shader,
       vertex_buffer,
       index_buffer,
       pipeline,
