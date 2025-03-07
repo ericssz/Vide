@@ -1,6 +1,6 @@
 use std::{
   any::Any,
-  sync::{Mutex, MutexGuard},
+  sync::{Arc, Mutex, MutexGuard},
   time::Duration,
 };
 
@@ -98,7 +98,7 @@ pub struct Renderer {
 
   // Window surface for preview
   #[cfg(feature = "preview")]
-  surface: wgpu::Surface,
+  surface: wgpu::Surface<'static>,
 
   /// Holds function pointers to all `push()` functions of registered effects
   effect_push_functions: Vec<Option<PushFunction>>,
@@ -118,12 +118,12 @@ pub struct Renderer {
 impl Renderer {
   pub fn new(
     settings: VideoSettings,
-    #[cfg(feature = "preview")] window: &winit::window::Window,
+    #[cfg(feature = "preview")] window: Arc<winit::window::Window>,
   ) -> Self {
-    let instance = wgpu::Instance::new(wgpu::Backends::all());
+    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
 
     #[cfg(feature = "preview")]
-    let surface = unsafe { instance.create_surface(window) };
+    let surface = instance.create_surface(window).unwrap();
 
     let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
       power_preference: wgpu::PowerPreference::HighPerformance,
@@ -138,12 +138,13 @@ impl Renderer {
     let (device, queue) = pollster::block_on(adapter.request_device(
       &wgpu::DeviceDescriptor {
         label: Some("Device"),
-        features: wgpu::Features::empty(),
-        limits: if cfg!(target_arch = "wasm32") {
+        required_features: wgpu::Features::empty(),
+        required_limits: if cfg!(target_arch = "wasm32") {
           wgpu::Limits::downlevel_webgl2_defaults()
         } else {
           wgpu::Limits::default()
         },
+        memory_hints: wgpu::MemoryHints::Performance,
       },
       None,
     ))
@@ -190,10 +191,12 @@ impl Renderer {
     };
 
     let config = {
+      let capabilities = surface.get_capabilities(&adapter);
+
       let config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         #[cfg(feature = "preview")]
-        format: surface.get_supported_formats(&adapter)[0],
+        format: capabilities.formats[0],
         #[cfg(not(feature = "preview"))]
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         width: settings.resolution.0,
@@ -202,6 +205,9 @@ impl Renderer {
         present_mode: wgpu::PresentMode::Fifo,
         #[cfg(not(feature = "preview"))]
         present_mode: wgpu::PresentMode::Immediate,
+        alpha_mode: capabilities.alpha_modes[0],
+        desired_maximum_frame_latency: 2,
+        view_formats: vec![],
       };
 
       #[cfg(feature = "preview")]
@@ -260,6 +266,7 @@ impl Renderer {
       dimension: wgpu::TextureDimension::D2,
       format: wgpu::TextureFormat::Depth32Float,
       usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+      view_formats: &[],
     });
 
     let depth_texture_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -389,17 +396,19 @@ impl Renderer {
               b: self.settings.background_color.b,
               a: 1.0,
             }),
-            store: true,
+            store: wgpu::StoreOp::Store,
           },
         })],
         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
           view: &self.depth_texture_view,
           depth_ops: Some(wgpu::Operations {
             load: wgpu::LoadOp::Clear(1.0),
-            store: true,
+            store: wgpu::StoreOp::Store,
           }),
           stencil_ops: None,
         }),
+        timestamp_writes: None,
+        occlusion_query_set: None,
       });
 
       pass.set_bind_group(0, &self.transform_bind_group, &[]);

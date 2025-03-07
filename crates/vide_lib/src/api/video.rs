@@ -1,4 +1,5 @@
 use core::time::Duration;
+use std::sync::Arc;
 
 use log::info;
 
@@ -33,7 +34,7 @@ pub struct Video<'a> {
   #[cfg(feature = "preview")]
   event_loop: winit::event_loop::EventLoop<()>,
   #[cfg(feature = "preview")]
-  window: winit::window::Window,
+  window: Arc<winit::window::Window>,
   renderer: Renderer,
   root: Clip<'a>,
   pub settings: VideoSettings,
@@ -43,16 +44,18 @@ impl<'a> Video<'a> {
   pub fn new(settings: VideoSettings) -> Self {
     #[cfg(feature = "preview")]
     let (event_loop, window, renderer) = {
-      let event_loop = winit::event_loop::EventLoop::new();
-      let window = winit::window::WindowBuilder::new()
-        .with_inner_size(winit::dpi::PhysicalSize::new(
-          settings.resolution.0,
-          settings.resolution.1,
-        ))
-        .with_resizable(false)
-        .build(&event_loop)
-        .unwrap();
-      let renderer = Renderer::new(settings, &window);
+      let event_loop = winit::event_loop::EventLoop::new().unwrap();
+      let window = Arc::new(
+        winit::window::WindowBuilder::new()
+          .with_inner_size(winit::dpi::PhysicalSize::new(
+            settings.resolution.0,
+            settings.resolution.1,
+          ))
+          .with_resizable(false)
+          .build(&event_loop)
+          .unwrap(),
+      );
+      let renderer = Renderer::new(settings, window.clone());
 
       (event_loop, window, renderer)
     };
@@ -105,16 +108,19 @@ impl<'a> Video<'a> {
     } = self;
 
     let mut frame = 0u64;
-    event_loop.run(move |event, _, control_flow| match event {
+    let _ = event_loop.run(move |event, elwt| match event {
       winit::event::Event::WindowEvent {
         event: winit::event::WindowEvent::CloseRequested,
-        window_id,
-      } if window_id == window.id() => *control_flow = winit::event_loop::ControlFlow::Exit,
-      winit::event::Event::RedrawRequested(window_id) if window_id == window.id() => {
+        ..
+      } => elwt.exit(),
+      winit::event::Event::WindowEvent {
+        event: winit::event::WindowEvent::RedrawRequested,
+        ..
+      } => {
         render_frame(frame, &mut renderer, &mut root);
         frame = (frame + 1) % (settings.duration.as_secs_f64() * settings.fps) as u64;
       }
-      winit::event::Event::MainEventsCleared => {
+      winit::event::Event::AboutToWait => {
         window.request_redraw();
       }
       _ => (),
