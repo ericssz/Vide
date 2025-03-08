@@ -1,6 +1,6 @@
-use crate::FFmpegExporter;
+use crate::AVFoundationExporter;
 
-pub fn to(output_file: impl ToString) -> FFmpegExporter {
+pub fn to(output_file: impl ToString) -> AVFoundationExporter {
   let extension = output_file
     .to_string()
     .split('.')
@@ -15,7 +15,7 @@ pub fn to(output_file: impl ToString) -> FFmpegExporter {
   let extension = extension.as_str();
 
   match extension {
-    "mp4" => FFmpegExporter::new(output_file, "mp4", "libx264", None),
+    "mp4" => AVFoundationExporter::new(output_file),
     other => panic!(
       "Vide Quick Export does not support or recognize {} (yet",
       other
