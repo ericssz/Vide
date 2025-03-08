@@ -42,6 +42,8 @@ fn main() {
         .build(),
       size: unanimated!((rect_size, rect_size)),
       color: unanimated!(rgb8!(0xda, 0x00, 0x37)),
+      start: 0.0,
+      end: 5.0,
     });
   }
 

@@ -19,6 +19,8 @@ fn main() {
       .hold(0.3)
       .keyframe(Rel(0.3), ease::IN_QUADRATIC, rgb8!(0x00, 0xda, 0x37))
       .build(),
+    start: 1.0,
+    end: 5.0,
   });
 
   video.push_clip(Rect {
@@ -30,6 +32,8 @@ fn main() {
       .hold(0.3)
       .keyframe(Rel(0.3), ease::IN_QUADRATIC, rgb8!(0x00, 0xda, 0x37))
       .build(),
+    start: 1.0,
+    end: 5.0,
   });
 
   video.push_clip(Rect {
@@ -41,6 +45,8 @@ fn main() {
       .hold(0.3)
       .keyframe(Rel(0.3), ease::IN_QUADRATIC, rgb8!(0x00, 0xda, 0x37))
       .build(),
+    start: 1.0,
+    end: 5.0,
   });
 
   video.push_clip(Rect {
@@ -50,6 +56,8 @@ fn main() {
       .keyframe(Rel(0.9), ease::OUT_EXPONENTIAL, (1920.0, 1080.0))
       .build(),
     color: unanimated!(rgb8!(0x00, 0x37, 0xda)),
+    start: 1.0,
+    end: 5.0,
   });
 
   video.render(vide_export::quick_export::to("output.mp4"));
