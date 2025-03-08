@@ -188,6 +188,7 @@ impl Renderer {
     };
 
     let config = {
+      #[cfg(feature = "preview")]
       let capabilities = surface.get_capabilities(&adapter);
 
       let config = wgpu::SurfaceConfiguration {
@@ -202,7 +203,10 @@ impl Renderer {
         present_mode: wgpu::PresentMode::Fifo,
         #[cfg(not(feature = "preview"))]
         present_mode: wgpu::PresentMode::Immediate,
+        #[cfg(feature = "preview")]
         alpha_mode: capabilities.alpha_modes[0],
+        #[cfg(not(feature = "preview"))]
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
         desired_maximum_frame_latency: 2,
         view_formats: vec![],
       };
@@ -452,8 +456,6 @@ impl Renderer {
 
     #[cfg(not(feature = "preview"))]
     {
-      info!("Copying buffers...");
-
       let buffer_slice = self.out_buffer.slice(..);
       let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
       buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
