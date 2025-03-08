@@ -8,16 +8,19 @@ use objc2_av_foundation::{
   AVVideoCodecKey, AVVideoCompressionPropertiesKey, AVVideoHeightKey, AVVideoProfileLevelKey,
   AVVideoWidthKey,
 };
+use objc2_core_foundation::CFDictionaryCreate;
 use objc2_core_media::{
   kCMTimeInvalid, CMSampleBufferCreateForImageBuffer, CMSampleTimingInfo, CMTime, CMTimeFlags,
   CMVideoFormatDescription, CMVideoFormatDescriptionCreate,
 };
 use objc2_core_video::{
-  kCVPixelFormatType_24RGB, kCVReturnSuccess, CVPixelBuffer, CVPixelBufferCreate,
-  CVPixelBufferGetBaseAddress, CVPixelBufferLockBaseAddress, CVPixelBufferLockFlags,
-  CVPixelBufferUnlockBaseAddress,
+  kCVPixelBufferHeightKey, kCVPixelBufferPixelFormatTypeKey,
+  kCVPixelBufferPoolMinimumBufferCountKey, kCVPixelBufferWidthKey, kCVPixelFormatType_24RGB,
+  kCVReturnSuccess, CVPixelBufferGetBaseAddress, CVPixelBufferLockBaseAddress,
+  CVPixelBufferLockFlags, CVPixelBufferPool, CVPixelBufferPoolCreate,
+  CVPixelBufferPoolCreatePixelBuffer, CVPixelBufferUnlockBaseAddress,
 };
-use objc2_foundation::{ns_string, NSDictionary, NSString, NSURL};
+use objc2_foundation::{ns_string, NSDictionary, NSNumber, NSString, NSURL};
 use vide::io::Export;
 
 pub struct AVFoundationExporter {
@@ -25,7 +28,7 @@ pub struct AVFoundationExporter {
   writer: Option<Retained<AVAssetWriter>>,
   writer_input: Option<Retained<AVAssetWriterInput>>,
   format_description: Option<&'static CMVideoFormatDescription>,
-  pixel_buffer: Option<&'static CVPixelBuffer>,
+  pixel_buffer_pool: Option<&'static CVPixelBufferPool>,
   current_timestamp: i64,
   ms_per_frame: i64,
   resolution: (usize, usize),
@@ -42,7 +45,7 @@ impl AVFoundationExporter {
       writer: None,
       writer_input: None,
       format_description: None,
-      pixel_buffer: None,
+      pixel_buffer_pool: None,
       current_timestamp: 0,
       ms_per_frame: 0,
       resolution: (1920, 1080),
@@ -121,33 +124,62 @@ impl Export for AVFoundationExporter {
         });
       }
 
-      let mut pixel_buffer_out = std::ptr::null_mut();
+      let pool_attributes = unsafe {
+        let keys = [kCVPixelBufferPoolMinimumBufferCountKey];
+        let values = [NSNumber::numberWithInt(30)];
+
+        CFDictionaryCreate(
+          None,
+          keys.as_ptr() as *mut *const std::ffi::c_void,
+          values.as_ptr() as *mut *const std::ffi::c_void,
+          1,
+          std::ptr::null(),
+          std::ptr::null(),
+        )
+      };
+
+      let pixel_buffer_attributes = unsafe {
+        let keys = [
+          kCVPixelBufferWidthKey,
+          kCVPixelBufferHeightKey,
+          kCVPixelBufferPixelFormatTypeKey,
+        ];
+        let values = [
+          NSNumber::numberWithInt(resolution.0 as i32),
+          NSNumber::numberWithInt(resolution.1 as i32),
+          NSNumber::numberWithInt(kCVPixelFormatType_24RGB as i32),
+        ];
+
+        CFDictionaryCreate(
+          None,
+          keys.as_ptr() as *mut *const std::ffi::c_void,
+          values.as_ptr() as *mut *const std::ffi::c_void,
+          3,
+          std::ptr::null(),
+          std::ptr::null(),
+        )
+      };
+
+      let mut pool_out = std::ptr::null_mut();
       let result = unsafe {
-        CVPixelBufferCreate(
+        CVPixelBufferPoolCreate(
           None,
-          resolution.0,
-          resolution.1,
-          kCVPixelFormatType_24RGB,
-          None,
-          NonNull::new(&mut pixel_buffer_out).unwrap(),
+          pool_attributes.as_deref(),
+          pixel_buffer_attributes.as_deref(),
+          NonNull::new(&mut pool_out).unwrap(),
         )
       };
       if result != kCVReturnSuccess {
-        panic!("Failed to create CVPixelBuffer: {}", result);
+        panic!("Failed to create pixel buffer pool: {:?}", result);
       }
 
-      (
-        writer,
-        writer_input,
-        format_description_out,
-        pixel_buffer_out,
-      )
+      (writer, writer_input, format_description_out, pool_out)
     })) {
-      Ok((writer, writer_input, format_description, pixel_buffer_out)) => {
+      Ok((writer, writer_input, format_description, pool_out)) => {
         self.writer = Some(writer);
         self.writer_input = Some(writer_input);
         self.format_description = unsafe { Some(&*format_description) };
-        self.pixel_buffer = unsafe { Some(&*pixel_buffer_out) };
+        self.pixel_buffer_pool = unsafe { Some(&*pool_out) };
         self.ms_per_frame = ms_per_frame;
         self.resolution = resolution;
       }
@@ -160,15 +192,24 @@ impl Export for AVFoundationExporter {
     let format_description = self.format_description.unwrap();
     let current_timestamp = self.current_timestamp;
     let ms_per_frame = self.ms_per_frame;
-    let pixel_buffer = self.pixel_buffer.unwrap();
+    let pool = self.pixel_buffer_pool.unwrap();
 
     match objc2::exception::catch(AssertUnwindSafe(|| {
+      let mut pixel_buffer_out = std::ptr::null_mut();
+      let result = unsafe {
+        CVPixelBufferPoolCreatePixelBuffer(None, pool, NonNull::new(&mut pixel_buffer_out).unwrap())
+      };
+      if result != kCVReturnSuccess {
+        panic!("Failed to create pixel buffer from pool");
+      }
+
       let rgb_data = frame
         .chunks(4)
         .flat_map(|p| [p[0], p[1], p[2]])
         .collect::<Vec<u8>>();
 
       unsafe {
+        let pixel_buffer = &*pixel_buffer_out;
         CVPixelBufferLockBaseAddress(pixel_buffer, CVPixelBufferLockFlags::empty());
         let pixel_buffer_ptr = CVPixelBufferGetBaseAddress(pixel_buffer);
         std::ptr::copy_nonoverlapping(rgb_data.as_ptr(), pixel_buffer_ptr.cast(), rgb_data.len());
@@ -197,7 +238,7 @@ impl Export for AVFoundationExporter {
       let result = unsafe {
         CMSampleBufferCreateForImageBuffer(
           None,
-          pixel_buffer,
+          &*pixel_buffer_out,
           true,
           None,
           std::ptr::null_mut(),
