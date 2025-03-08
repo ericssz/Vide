@@ -20,7 +20,7 @@ macro_rules! cubic_bezier {
 #[macro_export]
 macro_rules! unanimated {
   ($value:expr) => {
-    $crate::api::animation::AnimatedPropertyBuilder::new(60.0)
+    $crate::api::animation::AnimatedBuilder::new(60.0)
       .keyframe(
         $crate::api::animation::KeyframeTiming::Abs(0),
         $crate::api::animation::ease::LINEAR,
@@ -155,12 +155,12 @@ impl<T: Interpolate + Clone + std::fmt::Debug> Keyframe<T> {
   }
 }
 
-pub struct AnimatedProperty<T: Interpolate + Clone> {
+pub struct Animated<T: Interpolate + Clone> {
   initial: T,
   keyframes: Vec<Keyframe<T>>,
 }
 
-impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedProperty<T> {
+impl<T: Interpolate + Clone + std::fmt::Debug> Animated<T> {
   pub fn new(initial: T, keyframes: Vec<Keyframe<T>>) -> Self {
     Self { initial, keyframes }
   }
@@ -206,7 +206,7 @@ impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedProperty<T> {
   }
 }
 
-impl<T> Default for AnimatedProperty<T>
+impl<T> Default for Animated<T>
 where
   T: Default + Interpolate + Clone,
 {
@@ -223,13 +223,13 @@ pub enum KeyframeTiming<T: IntoFrame> {
   Rel(T),
 }
 
-pub struct AnimatedPropertyBuilder<T: Interpolate + Clone> {
+pub struct AnimatedBuilder<T: Interpolate + Clone> {
   initial: Option<T>,
   keyframes: Vec<Keyframe<T>>,
   fps: f64,
 }
 
-impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedPropertyBuilder<T> {
+impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedBuilder<T> {
   pub fn new(fps: f64) -> Self {
     Self {
       initial: None,
@@ -288,7 +288,7 @@ impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedPropertyBuilder<T> {
     self.push_keyframe(keyframe)
   }
 
-  pub fn build(&self) -> AnimatedProperty<T> {
-    AnimatedProperty::new(self.initial.to_owned().unwrap(), self.keyframes.to_owned())
+  pub fn build(&self) -> Animated<T> {
+    Animated::new(self.initial.to_owned().unwrap(), self.keyframes.to_owned())
   }
 }

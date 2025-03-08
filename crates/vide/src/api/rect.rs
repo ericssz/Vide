@@ -1,15 +1,15 @@
 use std::sync::MutexGuard;
 
 use super::{
-  animation::AnimatedProperty, color::Color, instance::Instance, instanced_mesh::InstancedMesh,
+  animation::Animated, color::Color, instance::Instance, instanced_mesh::InstancedMesh,
   mesh::Vertex, shader::Shader, transform::OPENGL_TO_WGPU_MATRIX,
 };
 use crate::{clip::Clip, render::Renderer};
 
 pub struct Rect {
-  pub position: AnimatedProperty<(f32, f32)>,
-  pub size: AnimatedProperty<(f32, f32)>,
-  pub color: AnimatedProperty<Color>,
+  pub position: Animated<(f32, f32)>,
+  pub size: Animated<(f32, f32)>,
+  pub color: Animated<Color>,
   pub start: f64,
   pub end: f64,
 }

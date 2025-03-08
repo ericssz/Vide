@@ -15,7 +15,7 @@ pub use paste;
 pub mod prelude {
   pub use super::{
     api::{
-      animation::{ease, AnimatedPropertyBuilder as Animation, KeyframeTiming::*},
+      animation::{ease, AnimatedBuilder as Animation, KeyframeTiming::*},
       color::*,
       rect::Rect,
       transform::Transform,
