@@ -160,7 +160,6 @@ impl Export for AVFoundationExporter {
     let format_description = self.format_description.unwrap();
     let current_timestamp = self.current_timestamp;
     let ms_per_frame = self.ms_per_frame;
-    let resolution = self.resolution;
     let pixel_buffer = self.pixel_buffer.unwrap();
 
     match objc2::exception::catch(AssertUnwindSafe(|| {
@@ -170,7 +169,6 @@ impl Export for AVFoundationExporter {
         .collect::<Vec<u8>>();
 
       unsafe {
-        let pixel_buffer = &*pixel_buffer;
         CVPixelBufferLockBaseAddress(pixel_buffer, CVPixelBufferLockFlags::empty());
         let pixel_buffer_ptr = CVPixelBufferGetBaseAddress(pixel_buffer);
         std::ptr::copy_nonoverlapping(rgb_data.as_ptr(), pixel_buffer_ptr.cast(), rgb_data.len());
@@ -199,7 +197,7 @@ impl Export for AVFoundationExporter {
       let result = unsafe {
         CMSampleBufferCreateForImageBuffer(
           None,
-          &*pixel_buffer,
+          pixel_buffer,
           true,
           None,
           std::ptr::null_mut(),
@@ -229,15 +227,9 @@ impl Export for AVFoundationExporter {
 
     unsafe {
       writer_input.markAsFinished();
-    };
-
-    // FIX: Changing this from finishWriting to finishWritingWithCompletionHandler
-    // corrupts the file
-    match objc2::exception::catch(AssertUnwindSafe(|| unsafe {
+      // FIX: Changing this from finishWriting to finishWritingWithCompletionHandler
+      // corrupts the file
       writer.finishWriting();
-    })) {
-      Ok(_) => {}
-      Err(e) => panic!("Failed to end: {:?}", e),
-    }
+    };
   }
 }
