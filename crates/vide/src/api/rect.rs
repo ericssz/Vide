@@ -10,20 +10,20 @@ pub struct Rect {
   pub position: AnimatedProperty<(f32, f32)>,
   pub size: AnimatedProperty<(f32, f32)>,
   pub color: AnimatedProperty<Color>,
-  pub start: u64,
-  pub end: u64,
+  pub start: f64,
+  pub end: f64,
 }
 
 impl Clip for Rect {
   fn start(&self) -> u64 {
-    self.start
+    (self.start * 60.0) as u64
   }
 
   fn end(&self, video_end: u64) -> u64 {
-    if self.end == u64::MAX {
+    if self.end.is_infinite() {
       video_end
     } else {
-      self.end
+      (self.end * 60.0) as u64
     }
   }
 
@@ -33,11 +33,11 @@ impl Clip for Rect {
       return false;
     }
 
-    if self.end == u64::MAX {
+    if self.end.is_infinite() {
       return true;
     }
 
-    frame < self.end
+    frame < (self.end * 60.0) as u64
   }
 
   fn render(
