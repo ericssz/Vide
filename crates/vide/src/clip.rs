@@ -25,5 +25,11 @@ impl IntoFrame for f64 {
 }
 
 pub trait Clip {
+  fn start(&self) -> u64;
+
+  fn end(&self, video_end: u64) -> u64;
+
+  fn in_time_frame(&self, frame: u64) -> bool;
+
   fn render(&mut self, renderer: &mut Renderer, pass: MutexGuard<wgpu::RenderPass<'_>>, frame: u64);
 }

@@ -108,10 +108,13 @@ impl Video {
       } => {
         let mut events = vec![];
         for clip in clips.iter_mut() {
-          events.push(RenderEvent::Clip {
-            clip: clip.as_mut(),
-            frame,
-          });
+          let start_frame = clip.start();
+          if clip.in_time_frame(frame) {
+            events.push(RenderEvent::Clip {
+              clip: clip.as_mut(),
+              frame: frame - start_frame,
+            });
+          }
         }
         renderer.render(events);
         frame = (frame + 1) % (settings.duration.as_secs_f64() * settings.fps) as u64;
@@ -132,15 +135,18 @@ impl Video {
 
     exporter.begin(self.settings);
 
-    for frame in 0..self.settings.duration.into_frame(self.settings.fps) {
+    let total_frames = self.settings.duration.into_frame(self.settings.fps);
+    for frame in 0..total_frames {
       info!("Encoding frame...");
 
       let mut events = vec![];
       for clip in self.clips.iter_mut() {
-        events.push(RenderEvent::RenderClip {
-          clip: clip.as_mut(),
-          frame,
-        });
+        if clip.in_time_frame(frame) {
+          events.push(RenderEvent::RenderClip {
+            clip: clip.as_mut(),
+            frame: frame - clip.start(),
+          });
+        }
       }
 
       let frame_data = self.renderer.render(events).unwrap();
