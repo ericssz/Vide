@@ -66,7 +66,7 @@ impl Video {
   }
 
   #[allow(unused_variables)]
-  pub fn render(self, exporter: impl Export)
+  pub fn render(&mut self, exporter: impl Export)
   where
     Self: 'static,
   {
@@ -128,23 +128,19 @@ impl Video {
 
   #[cfg(not(feature = "preview"))]
   fn export(&mut self, mut exporter: impl Export) {
-    use crate::clip::IntoFrame;
-
-    info!("Starting render...");
-    let start_time = std::time::Instant::now();
+    use crate::{clip::IntoFrame, render::RenderEvent};
 
     exporter.begin(self.settings);
 
     let total_frames = self.settings.duration.into_frame(self.settings.fps);
     for frame in 0..total_frames {
-      info!("Encoding frame...");
-
       let mut events = vec![];
       for clip in self.clips.iter_mut() {
+        let start_frame = clip.start();
         if clip.in_time_frame(frame) {
-          events.push(RenderEvent::RenderClip {
+          events.push(RenderEvent::Clip {
             clip: clip.as_mut(),
-            frame: frame - clip.start(),
+            frame: frame - start_frame,
           });
         }
       }
@@ -153,12 +149,6 @@ impl Video {
       exporter.push_frame(true, &frame_data);
     }
 
-    info!("Finalizing encoding...");
     exporter.end();
-
-    info!(
-      "Done! Rendering took {:0.05}s",
-      (std::time::Instant::now() - start_time).as_secs_f32()
-    );
   }
 }
