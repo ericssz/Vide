@@ -2,6 +2,9 @@
 
 // TODO: Add docs for these modules
 
+#[cfg(feature = "preview")]
+mod app;
+
 pub mod api;
 pub mod clip;
 pub mod io;

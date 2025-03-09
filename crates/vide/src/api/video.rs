@@ -1,6 +1,6 @@
-use std::{collections::VecDeque, sync::Arc, time::Duration};
+use std::{collections::VecDeque, time::Duration};
 
-use crate::{api::color::Color, clip::Clip, io::Export, render::Renderer, rgb8};
+use crate::{api::color::Color, app::App, clip::Clip, io::Export, rgb8};
 
 #[derive(Debug, Clone, Copy)]
 pub struct VideoSettings {
@@ -22,10 +22,7 @@ impl Default for VideoSettings {
 }
 
 pub struct Video {
-  #[cfg(feature = "preview")]
-  event_loop: winit::event_loop::EventLoop<()>,
-  #[cfg(feature = "preview")]
-  window: Arc<winit::window::Window>,
+  #[cfg(not(feature = "preview"))]
   pub renderer: Renderer,
   clips: VecDeque<Box<dyn Clip>>,
   pub settings: VideoSettings,
@@ -34,31 +31,15 @@ pub struct Video {
 impl Video {
   pub fn new(settings: VideoSettings) -> Self {
     #[cfg(feature = "preview")]
-    let (event_loop, window, renderer) = {
-      let event_loop = winit::event_loop::EventLoop::new().unwrap();
-      let window = Arc::new(
-        winit::window::WindowBuilder::new()
-          .with_inner_size(winit::dpi::PhysicalSize::new(
-            settings.resolution.0,
-            settings.resolution.1,
-          ))
-          .with_resizable(false)
-          .build(&event_loop)
-          .unwrap(),
-      );
-      let renderer = Renderer::new(settings, window.clone());
+    {
+      Self {
+        clips: VecDeque::new(),
+        settings,
+      }
+    }
 
-      (event_loop, window, renderer)
-    };
-
+    #[cfg(not(feature = "preview"))]
     Self {
-      #[cfg(feature = "preview")]
-      event_loop,
-      #[cfg(feature = "preview")]
-      window,
-      #[cfg(feature = "preview")]
-      renderer,
-      #[cfg(not(feature = "preview"))]
       renderer: Renderer::new(settings),
       clips: VecDeque::new(),
       settings,
@@ -101,45 +82,8 @@ impl Video {
   where
     Self: 'static,
   {
-    use crate::render::RenderEvent;
-
-    let Video {
-      settings,
-      window,
-      event_loop,
-      mut renderer,
-      mut clips,
-      ..
-    } = self;
-
-    let mut frame = 0u64;
-    let _ = event_loop.run(move |event, elwt| match event {
-      winit::event::Event::WindowEvent {
-        event: winit::event::WindowEvent::CloseRequested,
-        ..
-      } => elwt.exit(),
-      winit::event::Event::WindowEvent {
-        event: winit::event::WindowEvent::RedrawRequested,
-        ..
-      } => {
-        let mut events = vec![];
-        for clip in clips.iter_mut() {
-          let start_frame = clip.start();
-          if clip.in_time_frame(frame) {
-            events.push(RenderEvent::Clip {
-              clip: clip.as_mut(),
-              frame: frame - start_frame,
-            });
-          }
-        }
-        renderer.render(events);
-        frame = (frame + 1) % (settings.duration.as_secs_f64() * settings.fps) as u64;
-      }
-      winit::event::Event::AboutToWait => {
-        window.request_redraw();
-      }
-      _ => (),
-    });
+    let (event_loop, mut app) = App::new(self.settings, self.clips);
+    event_loop.run_app(&mut app).unwrap();
   }
 
   #[cfg(not(feature = "preview"))]
