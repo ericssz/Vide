@@ -69,7 +69,7 @@ impl Export for AVFoundationExporter {
         AVAssetWriter::assetWriterWithURL_fileType_error(&url, AVFileTypeMPEG4.unwrap()).unwrap()
       };
 
-      let video_settings = unsafe {
+      let output_settings = unsafe {
         NSDictionary::<NSString, AnyObject>::from_slices(
           &[
             AVVideoCodecKey.unwrap(),
@@ -92,7 +92,7 @@ impl Export for AVFoundationExporter {
       let writer_input = unsafe {
         let input = AVAssetWriterInput::assetWriterInputWithMediaType_outputSettings(
           AVMediaTypeVideo.unwrap(),
-          Some(&video_settings),
+          Some(&output_settings),
         );
         input.setExpectsMediaDataInRealTime(false);
         input

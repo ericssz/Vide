@@ -33,18 +33,21 @@ fn main() {
   let pos_right = 820.0 - rect_size * 0.5;
   for (i, &easing) in easing_functions.iter().enumerate() {
     let y_pos = 400.0 - rect_seperation * i as f32 + rect_size * 0.5;
-    video.push_clip(Rect {
-      position: Animation::new(60.0)
-        .keyframe(Abs(0.0), ease::LINEAR, (pos_left, y_pos))
-        .keyframe(Abs(2.0), easing, (pos_right, y_pos))
-        .hold(0.5)
-        .keyframe(Abs(4.5), easing, (pos_left, y_pos))
+    video.push_clip(
+      Rect::builder()
+        .position(
+          Animated::builder()
+            .keyframe(Abs(0.0), ease::LINEAR, (pos_left, y_pos))
+            .keyframe(Abs(2.0), easing, (pos_right, y_pos))
+            .hold(0.5)
+            .keyframe(Abs(4.5), easing, (pos_left, y_pos))
+            .build(),
+        )
+        .size((rect_size, rect_size))
+        .color(rgb8!(0xda, 0x00, 0x37))
+        .timing(0.0..5.0)
         .build(),
-      size: unanimated!((rect_size, rect_size)),
-      color: unanimated!(rgb8!(0xda, 0x00, 0x37)),
-      start: 0.0,
-      end: 5.0,
-    });
+    );
   }
 
   video.render(vide_export::quick_export::to("output.mp4"));
