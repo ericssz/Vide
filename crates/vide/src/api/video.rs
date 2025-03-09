@@ -65,8 +65,7 @@ impl Video {
     }
   }
 
-  #[allow(unused_variables)]
-  pub fn render(mut self, exporter: impl Export)
+  pub fn render(mut self, _exporter: impl Export)
   where
     Self: 'static,
   {
@@ -76,8 +75,25 @@ impl Video {
     self.export(exporter);
   }
 
+  #[inline]
+  pub fn clips(&mut self) -> &VecDeque<Box<dyn Clip>> {
+    &self.clips
+  }
+
+  #[inline]
+  pub fn clips_mut(&mut self) -> &mut VecDeque<Box<dyn Clip>> {
+    &mut self.clips
+  }
+
+  #[inline]
   pub fn push_clip(&mut self, clip: impl Clip + 'static) {
     self.clips.push_front(Box::new(clip));
+  }
+
+  #[inline]
+  pub fn remove_clip(&mut self, index: usize) {
+    assert!(index < self.clips.len(), "index {} is out of bounds", index);
+    self.clips.remove(index);
   }
 
   #[cfg(feature = "preview")]
