@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use crate::{api::color::Color, clip::Clip, io::Export, render::Renderer, rgb8};
 
