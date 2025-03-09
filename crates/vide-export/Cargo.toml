@@ -5,7 +5,12 @@ edition = "2021"
 
 [dependencies]
 vide = { workspace = true, default-features = false }
-objc2-foundation = "0.3.0"
+objc2-foundation = { version = "0.3.0", default-features = false, features = [
+  "NSString",
+  "NSDictionary",
+  "NSValue",
+  "NSURL",
+] }
 objc2-av-foundation = { version = "0.3.0", default-features = false, features = [
   "objc2-core-media",
   "objc2-core-video",
@@ -26,4 +31,7 @@ objc2-core-video = { version = "0.3.0", default-features = false, features = [
   "CVPixelBuffer",
 ] }
 objc2 = { version = "0.6.0", features = ["exception"] }
-objc2-core-foundation = "0.3.0"
+objc2-core-foundation = { version = "0.3.0", default-features = false, features = [
+  "CFDictionary",
+  "CFNumber",
+] }

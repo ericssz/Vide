@@ -1091,8 +1091,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "daeaf60f25471d26948a1c2f840e3f7d86f4109e3af4e8e4b5cd70c39690d925"
 dependencies = [
  "bitflags 2.9.0",
- "block2 0.6.0",
- "libc",
  "objc2 0.6.0",
 ]
 
@@ -1163,10 +1161,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a21c6c9014b82c39515db5b396f91645182611c97d24637cf56ac01e5f8d998"
 dependencies = [
  "bitflags 2.9.0",
- "block2 0.6.0",
- "libc",
  "objc2 0.6.0",
- "objc2-core-foundation",
 ]
 
 [[package]]
