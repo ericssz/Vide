@@ -1,6 +1,5 @@
 use std::{
-  any::Any,
-  sync::{Mutex, MutexGuard},
+  sync::{Arc, Mutex},
   time::Duration,
 };
 
@@ -10,10 +9,6 @@ use crate::{
   api::video::VideoSettings,
   clip::{Clip, IntoFrame},
 };
-
-pub(crate) type PushFunction = fn(&mut Box<dyn Any>, &Box<dyn Any>, u64);
-pub(crate) type RenderFunction =
-  for<'a> fn(&'a mut Box<dyn Any>, MutexGuard<wgpu::RenderPass<'a>>, &wgpu::Device, &wgpu::Queue);
 
 /// Timing information needed for rendering
 #[derive(Default, Debug, Clone, Copy)]
@@ -95,14 +90,6 @@ pub struct Renderer {
   // Window surface for preview
   #[cfg(feature = "preview")]
   surface: wgpu::Surface<'static>,
-
-  /// Holds function pointers to all `push()` functions of registered effects
-  _effect_push_functions: Vec<Option<PushFunction>>,
-  /// Holds function pointers to all `render()` functions of registered effects
-  effect_render_functions: Vec<Option<RenderFunction>>,
-  /// Holds `self` for the `render()` functions described in
-  /// [`Renderer::effect_functions`]
-  effects: Vec<Option<Box<dyn Any>>>,
 
   transform_buffer: wgpu::Buffer,
   transform_bind_group_layout: wgpu::BindGroupLayout,
@@ -294,10 +281,6 @@ impl Renderer {
       #[cfg(feature = "preview")]
       surface,
 
-      _effect_push_functions: vec![],
-      effect_render_functions: vec![],
-      effects: vec![],
-
       transform_buffer,
       transform_bind_group_layout,
       transform_bind_group,
@@ -411,31 +394,19 @@ impl Renderer {
           }
         }
       }
-
-      let render_functions = self.effect_render_functions.clone();
-      for (id, effect) in self.effects.iter_mut().enumerate() {
-        if let Some(effect) = effect {
-          (render_functions[id].unwrap())(
-            effect,
-            pass_ref.lock().unwrap(),
-            &self.device,
-            &self.queue,
-          );
-        }
-      }
     }
 
     #[cfg(not(feature = "preview"))]
     encoder.copy_texture_to_buffer(
-      wgpu::ImageCopyTexture {
+      wgpu::TexelCopyTextureInfo {
         aspect: wgpu::TextureAspect::All,
         texture: &self.out_texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
       },
-      wgpu::ImageCopyBuffer {
+      wgpu::TexelCopyBufferInfo {
         buffer: &self.out_buffer,
-        layout: wgpu::ImageDataLayout {
+        layout: wgpu::TexelCopyBufferLayout {
           offset: 0,
           bytes_per_row: Some(self.padded_bytes_per_row),
           rows_per_image: Some(self.settings.resolution.1),

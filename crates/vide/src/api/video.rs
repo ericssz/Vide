@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{collections::VecDeque, sync::Arc, time::Duration};
 
 use crate::{api::color::Color, clip::Clip, io::Export, render::Renderer, rgb8};
 
@@ -27,7 +27,7 @@ pub struct Video {
   #[cfg(feature = "preview")]
   window: Arc<winit::window::Window>,
   pub renderer: Renderer,
-  clips: Vec<Box<dyn Clip>>,
+  clips: VecDeque<Box<dyn Clip>>,
   pub settings: VideoSettings,
 }
 
@@ -60,13 +60,13 @@ impl Video {
       renderer,
       #[cfg(not(feature = "preview"))]
       renderer: Renderer::new(settings),
-      clips: vec![],
+      clips: VecDeque::new(),
       settings,
     }
   }
 
   #[allow(unused_variables)]
-  pub fn render(&mut self, exporter: impl Export)
+  pub fn render(mut self, exporter: impl Export)
   where
     Self: 'static,
   {
@@ -77,7 +77,7 @@ impl Video {
   }
 
   pub fn push_clip(&mut self, clip: impl Clip + 'static) {
-    self.clips.push(Box::new(clip));
+    self.clips.push_front(Box::new(clip));
   }
 
   #[cfg(feature = "preview")]
@@ -127,7 +127,7 @@ impl Video {
   }
 
   #[cfg(not(feature = "preview"))]
-  fn export(&mut self, mut exporter: impl Export) {
+  fn export(mut self, mut exporter: impl Export) {
     use crate::{clip::IntoFrame, render::RenderEvent};
 
     exporter.begin(self.settings);
