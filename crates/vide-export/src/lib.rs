@@ -8,7 +8,7 @@ use objc2_av_foundation::{
   AVVideoCodecKey, AVVideoCompressionPropertiesKey, AVVideoHeightKey, AVVideoProfileLevelKey,
   AVVideoWidthKey,
 };
-use objc2_core_foundation::CFDictionaryCreate;
+use objc2_core_foundation::{CFDictionaryCreate, CFNumber};
 use objc2_core_media::{
   kCMTimeInvalid, CMSampleBufferCreateForImageBuffer, CMSampleTimingInfo, CMTime, CMTimeFlags,
   CMVideoFormatDescription, CMVideoFormatDescriptionCreate,
@@ -126,7 +126,7 @@ impl Export for AVFoundationExporter {
 
       let pool_attributes = unsafe {
         let keys = [kCVPixelBufferPoolMinimumBufferCountKey];
-        let values = [NSNumber::numberWithInt(30)];
+        let values = [CFNumber::new_i64(100)];
 
         CFDictionaryCreate(
           None,
