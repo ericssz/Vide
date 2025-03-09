@@ -427,15 +427,15 @@ impl Renderer {
 
     #[cfg(not(feature = "preview"))]
     encoder.copy_texture_to_buffer(
-      wgpu::ImageCopyTexture {
+      wgpu::TexelCopyTextureInfo {
         aspect: wgpu::TextureAspect::All,
         texture: &self.out_texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
       },
-      wgpu::ImageCopyBuffer {
+      wgpu::TexelCopyBufferInfo {
         buffer: &self.out_buffer,
-        layout: wgpu::ImageDataLayout {
+        layout: wgpu::TexelCopyBufferLayout {
           offset: 0,
           bytes_per_row: Some(self.padded_bytes_per_row),
           rows_per_image: Some(self.settings.resolution.1),
