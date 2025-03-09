@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use crate::{api::color::Color, clip::Clip, io::Export, render::Renderer, rgb8};
 
@@ -66,7 +66,7 @@ impl Video {
   }
 
   #[allow(unused_variables)]
-  pub fn render(&mut self, exporter: impl Export)
+  pub fn render(mut self, exporter: impl Export)
   where
     Self: 'static,
   {
