@@ -15,7 +15,7 @@ fn main() {
       .position((-300.0, 0.0))
       .size((200.0, 150.0))
       .color(
-        Animation::new(60.0)
+        Animated::builder()
           .keyframe(Abs(0.0), ease::LINEAR, rgba8!(0xda, 0x00, 0x37, 0x00))
           .keyframe(Rel(0.3), ease::OUT_QUADRATIC, rgb8!(0xda, 0x00, 0x37))
           .hold(0.3)
@@ -31,7 +31,7 @@ fn main() {
       .position((0.0, 0.0))
       .size((200.0, 150.0))
       .color(
-        Animation::new(60.0)
+        Animated::builder()
           .keyframe(Abs(0.0), ease::LINEAR, rgba8!(0xda, 0x00, 0x37, 0x00))
           .keyframe(Rel(0.3), ease::OUT_QUADRATIC, rgb8!(0xda, 0x00, 0x37))
           .hold(0.3)
@@ -47,7 +47,7 @@ fn main() {
       .position((300.0, 0.0))
       .size((200.0, 150.0))
       .color(
-        Animation::new(60.0)
+        Animated::builder()
           .keyframe(Abs(0.0), ease::LINEAR, rgba8!(0xda, 0x00, 0x37, 0x00))
           .keyframe(Rel(0.3), ease::OUT_QUADRATIC, rgb8!(0xda, 0x00, 0x37))
           .hold(0.3)
@@ -62,7 +62,7 @@ fn main() {
     Rect::builder()
       .position((0.0, 0.0))
       .size(
-        Animation::new(60.0)
+        Animated::builder()
           .keyframe(Abs(0.0), ease::LINEAR, (0.0, 1080.0))
           .keyframe(Rel(0.9), ease::OUT_EXPONENTIAL, (1920.0, 1080.0))
           .build(),

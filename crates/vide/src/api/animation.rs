@@ -20,7 +20,7 @@ macro_rules! cubic_bezier {
 #[macro_export]
 macro_rules! unanimated {
   ($value:expr) => {
-    $crate::api::animation::AnimatedBuilder::new(60.0)
+    $crate::api::animation::Animated::builder()
       .keyframe(
         $crate::api::animation::KeyframeTiming::Abs(0),
         $crate::api::animation::ease::LINEAR,
@@ -167,8 +167,8 @@ impl<T: Interpolate + Clone> From<T> for Animated<T> {
 }
 
 impl<T: Interpolate + Clone> Animated<T> {
-  pub fn new(initial: T, keyframes: Vec<Keyframe<T>>) -> Self {
-    Self { initial, keyframes }
+  pub fn builder() -> AnimatedBuilder<T> {
+    AnimatedBuilder::default()
   }
 
   pub fn push_keyframe(&mut self, keyframe: Keyframe<T>) {
@@ -235,15 +235,17 @@ pub struct AnimatedBuilder<T: Interpolate + Clone> {
   fps: f64,
 }
 
-impl<T: Interpolate + Clone> AnimatedBuilder<T> {
-  pub fn new(fps: f64) -> Self {
+impl<T: Interpolate + Clone> Default for AnimatedBuilder<T> {
+  fn default() -> Self {
     Self {
       initial: None,
       keyframes: vec![],
-      fps,
+      fps: 60.0,
     }
   }
+}
 
+impl<T: Interpolate + Clone> AnimatedBuilder<T> {
   pub fn keyframe(
     &mut self,
     at: KeyframeTiming<impl IntoFrame>,
@@ -295,6 +297,9 @@ impl<T: Interpolate + Clone> AnimatedBuilder<T> {
   }
 
   pub fn build(&self) -> Animated<T> {
-    Animated::new(self.initial.to_owned().unwrap(), self.keyframes.to_owned())
+    Animated {
+      initial: self.initial.to_owned().unwrap(),
+      keyframes: self.keyframes.to_owned(),
+    }
   }
 }
