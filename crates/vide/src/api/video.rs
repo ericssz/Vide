@@ -65,7 +65,7 @@ impl Video {
     }
   }
 
-  pub fn render(mut self, _exporter: impl Export)
+  pub fn render(mut self, exporter: impl Export)
   where
     Self: 'static,
   {

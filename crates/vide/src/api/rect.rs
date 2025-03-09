@@ -4,7 +4,7 @@ use super::{
   animation::Animated, color::Color, instance::Instance, mesh::Mesh, shader::Shader,
   transform::OPENGL_TO_WGPU_MATRIX, vertex::Vertex,
 };
-use crate::{clip::Clip, render::Renderer};
+use crate::{clip::Clip, render::Renderer, unanimated};
 
 pub struct Rect {
   pub position: Animated<(f32, f32)>,
@@ -12,6 +12,12 @@ pub struct Rect {
   pub color: Animated<Color>,
   pub start: f64,
   pub end: f64,
+}
+
+impl Rect {
+  pub fn builder() -> RectBuilder {
+    RectBuilder::default()
+  }
 }
 
 impl Clip for Rect {
@@ -90,5 +96,59 @@ impl Clip for Rect {
       renderer.wgpu_queue(),
       vec![instance],
     );
+  }
+}
+
+pub struct RectBuilder {
+  position: Option<Animated<(f32, f32)>>,
+  size: Option<Animated<(f32, f32)>>,
+  color: Option<Animated<Color>>,
+  start: f64,
+  end: f64,
+}
+
+impl Default for RectBuilder {
+  fn default() -> Self {
+    Self {
+      position: None,
+      size: None,
+      color: None,
+      start: 0.0,
+      end: f64::INFINITY,
+    }
+  }
+}
+
+impl RectBuilder {
+  pub fn position(mut self, position: impl Into<Animated<(f32, f32)>>) -> Self {
+    self.position = Some(position.into());
+    self
+  }
+
+  pub fn size(mut self, size: impl Into<Animated<(f32, f32)>>) -> Self {
+    self.size = Some(size.into());
+    self
+  }
+
+  pub fn color(mut self, color: impl Into<Animated<Color>>) -> Self {
+    self.color = Some(color.into());
+    self
+  }
+
+  pub fn timing(mut self, range: impl Into<std::ops::Range<f64>>) -> Self {
+    let range = range.into();
+    self.start = range.start;
+    self.end = range.end;
+    self
+  }
+
+  pub fn build(self) -> Rect {
+    Rect {
+      position: self.position.unwrap_or_else(|| unanimated!((0.0, 0.0))),
+      size: self.size.unwrap_or_else(|| unanimated!((100.0, 100.0))),
+      color: self.color.unwrap_or_else(|| unanimated!(Color::WHITE)),
+      start: self.start,
+      end: self.end,
+    }
   }
 }

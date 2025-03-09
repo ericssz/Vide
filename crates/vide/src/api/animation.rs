@@ -147,7 +147,7 @@ pub struct Keyframe<T: Interpolate> {
   pub frame: u64,
 }
 
-impl<T: Interpolate + Clone + std::fmt::Debug> Keyframe<T> {
+impl<T: Interpolate + Clone> Keyframe<T> {
   pub fn evaluate(&self, previous: Keyframe<T>, frame: u64) -> T {
     // t: 0.0..=1.0
     let t = (frame - previous.frame) as f64 / (self.frame - previous.frame) as f64;
@@ -160,7 +160,13 @@ pub struct Animated<T: Interpolate + Clone> {
   keyframes: Vec<Keyframe<T>>,
 }
 
-impl<T: Interpolate + Clone + std::fmt::Debug> Animated<T> {
+impl<T: Interpolate + Clone> From<T> for Animated<T> {
+  fn from(value: T) -> Self {
+    unanimated!(value)
+  }
+}
+
+impl<T: Interpolate + Clone> Animated<T> {
   pub fn new(initial: T, keyframes: Vec<Keyframe<T>>) -> Self {
     Self { initial, keyframes }
   }
@@ -229,7 +235,7 @@ pub struct AnimatedBuilder<T: Interpolate + Clone> {
   fps: f64,
 }
 
-impl<T: Interpolate + Clone + std::fmt::Debug> AnimatedBuilder<T> {
+impl<T: Interpolate + Clone> AnimatedBuilder<T> {
   pub fn new(fps: f64) -> Self {
     Self {
       initial: None,
