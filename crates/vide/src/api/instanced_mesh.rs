@@ -2,7 +2,7 @@ use std::sync::MutexGuard;
 
 use wgpu::util::DeviceExt;
 
-use super::{instance::Instance, mesh::Vertex, shader::Shader};
+use super::{instance::Instance, shader::Shader, vertex::Vertex};
 use crate::render::Renderer;
 
 #[derive(Debug)]

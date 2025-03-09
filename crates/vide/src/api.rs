@@ -6,4 +6,5 @@ pub mod mesh;
 pub mod rect;
 pub mod shader;
 pub mod transform;
+pub mod vertex;
 pub mod video;

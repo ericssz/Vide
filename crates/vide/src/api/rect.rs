@@ -2,7 +2,7 @@ use std::sync::MutexGuard;
 
 use super::{
   animation::Animated, color::Color, instance::Instance, instanced_mesh::InstancedMesh,
-  mesh::Vertex, shader::Shader, transform::OPENGL_TO_WGPU_MATRIX,
+  shader::Shader, transform::OPENGL_TO_WGPU_MATRIX, vertex::Vertex,
 };
 use crate::{clip::Clip, render::Renderer};
 
