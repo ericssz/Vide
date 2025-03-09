@@ -127,7 +127,7 @@ impl Video {
   }
 
   #[cfg(not(feature = "preview"))]
-  fn export(&mut self, mut exporter: impl Export) {
+  fn export(mut self, mut exporter: impl Export) {
     use crate::{clip::IntoFrame, render::RenderEvent};
 
     exporter.begin(self.settings);
