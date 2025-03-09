@@ -2,7 +2,7 @@ use std::sync::MutexGuard;
 
 use wgpu::util::DeviceExt;
 
-use super::{shader::Shader, vertex::Vertex};
+use super::{instance::Instance, shader::Shader, vertex::Vertex};
 use crate::render::Renderer;
 
 #[derive(Debug)]
@@ -15,6 +15,8 @@ pub struct Mesh {
 
   vertex_buffer: wgpu::Buffer,
   index_buffer: Option<wgpu::Buffer>,
+  instance_buffer: wgpu::Buffer,
+  instance_buffer_len: usize,
   pipeline: wgpu::RenderPipeline,
 }
 
@@ -24,7 +26,6 @@ impl Mesh {
     vertices: Vec<Vertex>,
     indices: Option<Vec<u16>>,
     shader: Shader,
-    bind_group_layouts: &[&wgpu::BindGroupLayout],
   ) -> Self {
     let device = renderer.wgpu_device();
     let config = renderer.wgpu_config();
@@ -51,13 +52,16 @@ impl Mesh {
       (None, 0)
     };
 
+    let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+      label: Some("Mesh Instance Buffer"),
+      size: std::mem::size_of::<Instance>() as wgpu::BufferAddress,
+      usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+      mapped_at_creation: false,
+    });
+
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
       label: Some("Render Pipeline Layout"),
-      bind_group_layouts: &{
-        let mut l = vec![renderer.wgpu_transform_bind_group_layout()];
-        l.extend(bind_group_layouts);
-        l
-      }[..],
+      bind_group_layouts: &[renderer.wgpu_transform_bind_group_layout()],
       push_constant_ranges: &[],
     });
 
@@ -67,7 +71,7 @@ impl Mesh {
       vertex: wgpu::VertexState {
         module: &shader.module,
         entry_point: Some("vs_main"),
-        buffers: &[Vertex::desc()],
+        buffers: &[Vertex::desc(), Instance::desc()],
         compilation_options: wgpu::PipelineCompilationOptions::default(),
       },
       fragment: Some(wgpu::FragmentState {
@@ -83,7 +87,7 @@ impl Mesh {
       primitive: wgpu::PrimitiveState::default(),
       depth_stencil: Some(wgpu::DepthStencilState {
         format: wgpu::TextureFormat::Depth32Float,
-        depth_write_enabled: true,
+        depth_write_enabled: false,
         depth_compare: wgpu::CompareFunction::Less,
         stencil: wgpu::StencilState::default(),
         bias: wgpu::DepthBiasState::default(),
@@ -101,20 +105,45 @@ impl Mesh {
       _shader: shader,
       vertex_buffer,
       index_buffer,
+      instance_buffer,
+      instance_buffer_len: 0,
       pipeline,
     }
   }
 
-  pub fn render(&self, mut render_pass: MutexGuard<wgpu::RenderPass<'_>>, _queue: &wgpu::Queue) {
+  pub fn render(
+    &mut self,
+    mut render_pass: MutexGuard<wgpu::RenderPass<'_>>,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    instances: Vec<Instance>,
+  ) {
+    if self.instance_buffer_len != instances.len() {
+      self.instance_buffer_len = instances.len();
+      self.instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Instance Buffer"),
+        contents: bytemuck::cast_slice(&instances[..]),
+        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+      });
+    }
+
+    queue.write_buffer(
+      &self.instance_buffer,
+      0,
+      bytemuck::cast_slice(&instances[..]),
+    );
+
     if let Some(index_buffer) = self.index_buffer.as_ref() {
       render_pass.set_pipeline(&self.pipeline);
       render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+      render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
       render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-      render_pass.draw_indexed(0..self.len_indices, 0, 0..1);
+      render_pass.draw_indexed(0..self.len_indices, 0, 0..(self.instance_buffer_len as u32));
     } else {
       render_pass.set_pipeline(&self.pipeline);
       render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-      render_pass.draw(0..self.len_vertices, 0..1);
+      render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+      render_pass.draw(0..self.len_vertices, 0..(self.instance_buffer_len as u32));
     }
   }
 }

@@ -1,8 +1,8 @@
 use std::sync::MutexGuard;
 
 use super::{
-  animation::Animated, color::Color, instance::Instance, instanced_mesh::InstancedMesh,
-  shader::Shader, transform::OPENGL_TO_WGPU_MATRIX, vertex::Vertex,
+  animation::Animated, color::Color, instance::Instance, mesh::Mesh, shader::Shader,
+  transform::OPENGL_TO_WGPU_MATRIX, vertex::Vertex,
 };
 use crate::{clip::Clip, render::Renderer};
 
@@ -51,7 +51,7 @@ impl Clip for Rect {
     let color = self.color.evaluate(frame);
 
     let shader = Shader::new(renderer, include_str!("rect.wgsl").into());
-    let mut mesh = InstancedMesh::new(
+    let mut mesh = Mesh::new(
       renderer,
       vec![
         Vertex {
