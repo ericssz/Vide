@@ -27,8 +27,8 @@ pub struct AVFoundationExporter {
   output: String,
   writer: Option<Retained<AVAssetWriter>>,
   writer_input: Option<Retained<AVAssetWriterInput>>,
-  format_description: Option<&'static CMVideoFormatDescription>,
-  pixel_buffer_pool: Option<&'static CVPixelBufferPool>,
+  format_description: Option<Retained<CMVideoFormatDescription>>,
+  pixel_buffer_pool: Option<Retained<CVPixelBufferPool>>,
   current_timestamp: i64,
   ms_per_frame: i64,
   resolution: (usize, usize),
@@ -173,13 +173,17 @@ impl Export for AVFoundationExporter {
         panic!("Failed to create pixel buffer pool: {:?}", result);
       }
 
-      (writer, writer_input, format_description_out, pool_out)
+      let format_description =
+        unsafe { Retained::from_raw(format_description_out as *mut _).unwrap() };
+      let pool = unsafe { Retained::from_raw(pool_out).unwrap() };
+
+      (writer, writer_input, format_description, pool)
     })) {
-      Ok((writer, writer_input, format_description, pool_out)) => {
+      Ok((writer, writer_input, format_description, pool)) => {
         self.writer = Some(writer);
         self.writer_input = Some(writer_input);
-        self.format_description = unsafe { Some(&*format_description) };
-        self.pixel_buffer_pool = unsafe { Some(&*pool_out) };
+        self.format_description = Some(format_description);
+        self.pixel_buffer_pool = Some(pool);
         self.ms_per_frame = ms_per_frame;
         self.resolution = resolution;
       }
@@ -189,10 +193,10 @@ impl Export for AVFoundationExporter {
 
   fn push_frame(&mut self, _keyframe: bool, frame: &[u8]) {
     let writer_input = self.writer_input.as_ref().unwrap();
-    let format_description = self.format_description.unwrap();
+    let format_description = self.format_description.as_ref().unwrap();
     let current_timestamp = self.current_timestamp;
     let ms_per_frame = self.ms_per_frame;
-    let pool = self.pixel_buffer_pool.unwrap();
+    let pool = self.pixel_buffer_pool.as_ref().unwrap();
 
     match objc2::exception::catch(AssertUnwindSafe(|| {
       let mut pixel_buffer_out = std::ptr::null_mut();
