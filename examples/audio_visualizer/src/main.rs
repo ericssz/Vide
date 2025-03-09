@@ -54,12 +54,12 @@ fn main() {
 
   let bar_x_size = ALL_BARS_WIDTH / BARS as f32 - BAR_SEPERATION;
 
-  let mut size_animations: Vec<Animation<(f32, f32)>> = Vec::with_capacity(BARS);
+  let mut builders: Vec<AnimatedBuilder<(f32, f32)>> = Vec::with_capacity(BARS);
 
   for _ in 0..BARS {
-    let mut animation = Animation::new(60.0);
+    let mut animation = Animated::builder();
     animation.keyframe(Abs(0.0), ease::LINEAR, (bar_x_size, 0.0));
-    size_animations.push(animation);
+    builders.push(animation);
   }
 
   let freq_step = (MAX_FREQ - MIN_FREQ) / (BARS - 1) as f32;
@@ -92,7 +92,7 @@ fn main() {
       let value = (prev * 0.84).max(value.val() * 5000.0);
       previous_value[bar] = value;
 
-      size_animations[bar].keyframe(
+      builders[bar].keyframe(
         Abs(frame),
         ease::LINEAR,
         (bar_x_size, (BAR_HEIGHT * (value / 5000.0)).max(2.0)),
@@ -102,48 +102,57 @@ fn main() {
 
   log::info!("Building animations");
 
-  for (i, animation) in size_animations.into_iter().enumerate() {
-    video.push_clip(Rect {
-      position: unanimated!((
-        (ALL_BARS_WIDTH * -0.5) + (bar_x_size + BAR_SEPERATION) * i as f32,
-        0.0
-      )),
-      size: animation.build(),
-      color: unanimated!(rgb8!(0x5f, 0xf2, 0xf0)),
-      start: duration.as_secs_f64(),
-      end: 7.0,
-    });
+  for (i, builder) in builders.into_iter().enumerate() {
+    video.push_clip(
+      Rect::builder()
+        .position((
+          (ALL_BARS_WIDTH * -0.5) + (bar_x_size + BAR_SEPERATION) * i as f32,
+          0.0,
+        ))
+        .size(builder.build())
+        .color(rgb8!(0x5f, 0xf2, 0xf0))
+        .timing(duration.as_secs_f64()..7.0)
+        .build(),
+    );
   }
 
-  video.push_clip(Rect {
-    position: unanimated!((0.0, 0.0)),
-    size: unanimated!((1920.0, 1080.0)),
-    color: Animation::new(60.0)
-      .keyframe(Abs(0.0), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x00))
-      .keyframe(Abs(0.6), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x66))
-      .hold(5.0)
-      .keyframe(Rel(0.6), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x00))
+  video.push_clip(
+    Rect::builder()
+      .position((0.0, 0.0))
+      .size((1920.0, 1080.0))
+      .color(
+        Animated::builder()
+          .keyframe(Abs(0.0), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x00))
+          .keyframe(Abs(0.6), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x66))
+          .hold(5.0)
+          .keyframe(Rel(0.6), ease::LINEAR, rgba8!(0x00, 0x00, 0x00, 0x00))
+          .build(),
+      )
+      .timing(0.0..7.0)
       .build(),
-    start: 0.0,
-    end: 7.0,
-  });
+  );
 
-  video.push_clip(Rect {
-    position: Animation::new(60.0)
-      .keyframe(Abs(0.0), ease::LINEAR, (0.0, -590.0))
-      .keyframe(Rel(1.0), ease::IN_OUT_QUINTIC, (0.0, 0.0))
+  video.push_clip(
+    Rect::builder()
+      .position(
+        Animated::builder()
+          .keyframe(Abs(0.0), ease::LINEAR, (0.0, -590.0))
+          .keyframe(Rel(1.0), ease::IN_OUT_QUINTIC, (0.0, 0.0))
+          .build(),
+      )
+      .size(
+        Animated::builder()
+          .keyframe(Abs(0.0), ease::LINEAR, (100.0, 100.0))
+          .hold(1.0)
+          .keyframe(Rel(0.6), ease::IN_OUT_QUINTIC, (500.0, 128.0))
+          .hold(3.0)
+          .keyframe(Rel(0.6), ease::IN_QUARTIC, (0.0, 164.0))
+          .build(),
+      )
+      .color(rgb8!(0x04, 0x2f, 0x2e))
+      .timing(0.0..7.0)
       .build(),
-    size: Animation::new(60.0)
-      .keyframe(Abs(0.0), ease::LINEAR, (100.0, 100.0))
-      .hold(1.0)
-      .keyframe(Rel(0.6), ease::IN_OUT_QUINTIC, (500.0, 128.0))
-      .hold(3.0)
-      .keyframe(Rel(0.6), ease::IN_QUARTIC, (0.0, 164.0))
-      .build(),
-    color: unanimated!(rgb8!(0x04, 0x2f, 0x2e)),
-    start: 0.0,
-    end: 7.0,
-  });
+  );
 
   video.render(vide_export::quick_export::to("output.mp4"));
 }
