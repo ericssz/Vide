@@ -203,17 +203,18 @@ impl Export for AVFoundationExporter {
         panic!("Failed to create pixel buffer from pool");
       }
 
+      let pixel_buffer = unsafe { Retained::from_raw(pixel_buffer_out).unwrap() };
+
       let rgb_data = frame
         .chunks(4)
         .flat_map(|p| [p[0], p[1], p[2]])
         .collect::<Vec<u8>>();
 
       unsafe {
-        let pixel_buffer = &*pixel_buffer_out;
-        CVPixelBufferLockBaseAddress(pixel_buffer, CVPixelBufferLockFlags::empty());
-        let pixel_buffer_ptr = CVPixelBufferGetBaseAddress(pixel_buffer);
+        CVPixelBufferLockBaseAddress(&pixel_buffer, CVPixelBufferLockFlags::empty());
+        let pixel_buffer_ptr = CVPixelBufferGetBaseAddress(&pixel_buffer);
         std::ptr::copy_nonoverlapping(rgb_data.as_ptr(), pixel_buffer_ptr.cast(), rgb_data.len());
-        CVPixelBufferUnlockBaseAddress(pixel_buffer, CVPixelBufferLockFlags::empty());
+        CVPixelBufferUnlockBaseAddress(&pixel_buffer, CVPixelBufferLockFlags::empty());
       }
 
       let mut timing_info = unsafe {
@@ -251,8 +252,10 @@ impl Export for AVFoundationExporter {
         panic!("Failed to create CMSampleBuffer: {}", result);
       }
 
+      let sample_buffer = unsafe { Retained::from_raw(sample_buffer_out).unwrap() };
+
       unsafe {
-        writer_input.appendSampleBuffer(&*sample_buffer_out);
+        writer_input.appendSampleBuffer(&sample_buffer);
       };
     })) {
       Ok(_) => {}
