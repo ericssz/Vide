@@ -134,7 +134,7 @@ impl Mesh {
     }
   }
 
-  pub fn render(&self, mut render_pass: MutexGuard<wgpu::RenderPass<'_>>, queue: &wgpu::Queue) {
+  pub fn render(&self, mut render_pass: MutexGuard<wgpu::RenderPass<'_>>, _queue: &wgpu::Queue) {
     if let Some(index_buffer) = self.index_buffer.as_ref() {
       render_pass.set_pipeline(&self.pipeline);
       render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));

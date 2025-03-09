@@ -1,6 +1,6 @@
 use std::{
   any::Any,
-  sync::{Arc, Mutex, MutexGuard},
+  sync::{Mutex, MutexGuard},
   time::Duration,
 };
 
