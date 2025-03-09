@@ -20,10 +20,10 @@ pub mod prelude {
     api::{
       animation::{ease, Animated, AnimatedBuilder, KeyframeTiming::*},
       color::*,
-      rect::Rect,
       transform::Transform,
       video::*,
     },
+    clip::Rect,
     cubic_bezier, lerp, rgb8, rgba8, unanimated,
   };
 }
