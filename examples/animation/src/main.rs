@@ -22,6 +22,7 @@ fn main() {
           .keyframe(Rel(0.3), ease::IN_QUADRATIC, rgb8!(0x00, 0xda, 0x37))
           .build(),
       )
+      .rounded(0.3) // 30%
       .timing(1.0..5.0)
       .build(),
   );
@@ -38,6 +39,7 @@ fn main() {
           .keyframe(Rel(0.3), ease::IN_QUADRATIC, rgb8!(0x00, 0xda, 0x37))
           .build(),
       )
+      .rounded(0.3) // 30%
       .timing(1.0..5.0)
       .build(),
   );
@@ -54,6 +56,7 @@ fn main() {
           .keyframe(Rel(0.3), ease::IN_QUADRATIC, rgb8!(0x00, 0xda, 0x37))
           .build(),
       )
+      .rounded(0.3) // 30%
       .timing(1.0..5.0)
       .build(),
   );
