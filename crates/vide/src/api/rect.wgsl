@@ -17,11 +17,14 @@ struct InstanceInput {
   @location(7) matrix_2: vec4<f32>,
   @location(8) matrix_3: vec4<f32>,
   @location(9) color: vec4<f32>,
+  @location(10) radius: f32,
 };
 
 struct VertexOutput {
   @builtin(position) clip_position: vec4<f32>,
+  @location(1) uv: vec2<f32>,
   @location(0) color: vec4<f32>,
+  @location(2) radius: f32,
 };
 
 @vertex
@@ -40,11 +43,21 @@ fn vs_main(
 
   var out: VertexOutput;
   out.color = instance.color;
+  out.radius = instance.radius;
+  out.uv = model.uv;
   out.clip_position = transform_matrix * instance_matrix * vec4<f32>(model.position, 0.0, 1.0);
   return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-  return in.color;
+let center = vec2(0.5);
+  let position = in.uv - center;
+
+  let half_size = center - vec2(in.radius / 2.0);
+  // SDF
+  let d = length(max(abs(position) - half_size, vec2(0.0))) - in.radius / 2.0;
+  let alpha = 1.0 - smoothstep(0.0, fwidth(d), d);
+
+  return vec4(in.color.rgb, in.color.a * alpha);
 }

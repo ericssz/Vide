@@ -45,6 +45,7 @@ fn main() {
         )
         .size((rect_size, rect_size))
         .color(rgb8!(0xda, 0x00, 0x37))
+        .rounded(0.2) // 20%
         .timing(0.0..5.0)
         .build(),
     );
