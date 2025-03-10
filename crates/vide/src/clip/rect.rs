@@ -1,10 +1,14 @@
 use std::sync::MutexGuard;
 
-use super::{
-  animation::Animated, color::Color, instance::Instance, mesh::Mesh, shader::Shader,
-  transform::OPENGL_TO_WGPU_MATRIX, vertex::Vertex,
+use super::Clip;
+use crate::{
+  api::{
+    animation::Animated, color::Color, instance::Instance, mesh::Mesh, shader::Shader,
+    transform::OPENGL_TO_WGPU_MATRIX, vertex::Vertex,
+  },
+  render::Renderer,
+  unanimated,
 };
-use crate::{clip::Clip, render::Renderer, unanimated};
 
 pub struct Rect {
   pub position: Animated<(f32, f32)>,
@@ -58,7 +62,7 @@ impl Clip for Rect {
     let color = self.color.evaluate(frame);
     let radius = self.radius.evaluate(frame);
 
-    let shader = Shader::new(renderer, include_str!("rect.wgsl").into());
+    let shader = Shader::new(renderer, include_str!("../shaders/rect.wgsl").into());
     let mut mesh = Mesh::new(
       renderer,
       vec![

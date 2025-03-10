@@ -1,6 +1,8 @@
 use std::{collections::VecDeque, time::Duration};
 
-use crate::{api::color::Color, app::App, clip::Clip, io::Export, rgb8};
+#[cfg(feature = "preview")]
+use crate::app::App;
+use crate::{api::color::Color, clip::Clip, io::Export, render::Renderer, rgb8};
 
 #[derive(Debug, Clone, Copy)]
 pub struct VideoSettings {

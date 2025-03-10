@@ -1,4 +1,7 @@
+pub mod rect;
 use std::{sync::MutexGuard, time::Duration};
+
+pub use rect::Rect;
 
 use crate::render::Renderer;
 
